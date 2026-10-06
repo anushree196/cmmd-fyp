@@ -3,6 +3,7 @@ pydicom>=3.0
 numpy>=1.26
 pandas>=2.2
 openpyxl
+tabulate
 pillow
 opencv-python
 tqdm
