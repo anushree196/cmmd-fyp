@@ -37,6 +37,12 @@ and compute one-vs-rest macro AUC (Master doc §7.1).
 - Label source: TOMPEI-CMMD corrected labels for ALL experiments, E0 included.
 - Patient-wise stratified splits (except E0, which copies the paper's image-wise split on purpose).
 - Grading = molecular subtype (stated as a scope choice in the report).
+- Stage 1 trains **per breast**: one sample = the CC + MLO pair of one breast, with that breast's own
+  benign/malignant label (30 patients have one benign and one malignant breast, so a patient-level label would
+  be wrong for them). Splits stay **per patient**: both breasts of a patient always land in the same split.
+  (Anu, 2026-10-07, after task 01.)
+- The 1,458 images with no clinical row (the other breast of 729 D2 patients) are **excluded** from training and
+  evaluation; nothing says they are benign. They are counted in the data-flow report. (Anu, 2026-10-07.)
 
 ## Decisions made in this kit (Claude's defaults; Anu can change them)
 - DICOMs are converted **once** on the laptop to 8-bit PNG (1024 px tall, breast-cropped, right breasts mirrored).
