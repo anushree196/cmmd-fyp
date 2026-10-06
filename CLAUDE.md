@@ -41,7 +41,7 @@ All paths come from `config.yaml` (copy `config.example.yaml`). Never hard-code 
 ```
 scripts/      numbered scripts, one per step (01_inventory.py, 02_convert.py, ...)
 src/          reusable code (datasets, models, metrics) imported by scripts and notebooks
-notebooks/    Kaggle notebooks (training); they `git clone` this repo and import src/
+notebooks/    Kaggle notebooks (training); they attach the private `cmmd-code` dataset and import src/ from it
 tasks/        the step-by-step plan you follow
 docs/         plan summary, decisions
 reports/      small outputs worth keeping (tables, QC montages, figures) — committed

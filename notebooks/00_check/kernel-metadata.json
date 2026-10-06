@@ -1,0 +1,13 @@
+{
+  "id": "honeyyy09/cmmd-00-check",
+  "title": "cmmd-00-check",
+  "code_file": "cmmd_00_check.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "false",
+  "dataset_sources": ["honeyyy09/cmmd-png1024", "honeyyy09/cmmd-code"],
+  "competition_sources": [],
+  "kernel_sources": []
+}

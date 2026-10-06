@@ -1,0 +1,112 @@
+{
+  "data_root": "/kaggle/input/datasets/honeyyy09/cmmd-png1024",
+  "code_root": "/kaggle/input/datasets/honeyyy09/cmmd-code",
+  "n_png": 5202,
+  "n_masks": 1385,
+  "png_bytes": 895567571,
+  "mask_bytes": 3939377,
+  "index_files": [
+    "breast_labels.csv",
+    "dicom_index.csv",
+    "image_sides.csv",
+    "mask_index.csv",
+    "pairs.csv",
+    "png_index.csv",
+    "side_tag_vs_pixels.csv",
+    "stage2_patients.csv"
+  ],
+  "split_files": [
+    "stage1.csv",
+    "stage2.csv",
+    "stage2_e0_imagewise.csv"
+  ],
+  "manifest": {
+    "built": "2026-10-07",
+    "git_commit": "cdfe2c1",
+    "png_height": 1024,
+    "n_png": 5202,
+    "n_masks": 1385,
+    "n_index_files": 8,
+    "n_split_files": 3,
+    "pairs_rows": 2601,
+    "stage1_breasts": 1856,
+    "stage1_patients": 1762,
+    "stage1_per_split": {
+      "train": 1299,
+      "test": 279,
+      "val": 278
+    },
+    "stage2_patients": 671,
+    "stage2_per_split": {
+      "train": 469,
+      "test": 101,
+      "val": 101
+    },
+    "stage2_has_box_only": 14,
+    "e0_images": 1342
+  },
+  "pairs_rows": 2601,
+  "stage1_breasts": 1856,
+  "stage2_patients": 671,
+  "e0_images": 1342,
+  "stage1_per_split": {
+    "train": 1299,
+    "test": 279,
+    "val": 278
+  },
+  "stage2_per_split": {
+    "train": 469,
+    "test": 101,
+    "val": 101
+  },
+  "stage2_has_box_only": 14,
+  "pngs_named_in_pairs_but_missing": 0,
+  "masks_named_in_pairs_but_missing": 0,
+  "patients_in_two_stage1_splits": 0,
+  "example": {
+    "patient": "D2-0001",
+    "subtype": "Luminal B",
+    "cc_size": [
+      385,
+      1024
+    ],
+    "mlo_size": [
+      272,
+      1024
+    ],
+    "mask_size": [
+      272,
+      1024
+    ],
+    "mode": "L",
+    "mask_same_size_as_mlo": true
+  },
+  "src_import_ok": true,
+  "requirements_train": [
+    "monai>=1.3",
+    "timm",
+    "scikit-learn",
+    "pandas",
+    "pyyaml",
+    "tqdm",
+    "grad-cam",
+    "shap",
+    "pyradiomics",
+    "SimpleITK",
+    ""
+  ],
+  "torch": "2.11.0+cu128",
+  "cuda_available": true,
+  "gpu_count": 2,
+  "gpu_name": "Tesla T4",
+  "python": "3.13.15",
+  "pkg_monai": "NOT INSTALLED",
+  "pkg_timm": "1.0.29",
+  "pkg_radiomics": "NOT INSTALLED",
+  "pkg_SimpleITK": "2.5.6",
+  "pkg_pytorch_grad_cam": "NOT INSTALLED",
+  "pkg_shap": "0.52.0",
+  "pkg_sklearn": "1.6.1",
+  "pkg_cv2": "4.14.0",
+  "all_ok": true
+}

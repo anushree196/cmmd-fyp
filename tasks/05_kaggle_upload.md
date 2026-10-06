@@ -14,7 +14,8 @@ Goal: a private Kaggle Dataset holding `png1024/`, `masks1024/`, `index/`, `spli
 5. Delete `data/kaggle_upload/` afterwards if disk is tight (the source folders stay).
 
 ## Done when
-- The Kaggle dataset exists, is private, and a Kaggle notebook can list `/kaggle/input/cmmd-png1024/png1024`.
+- The Kaggle dataset exists, is private, and a Kaggle notebook can list its `png1024` folder
+  (measured mount path: `/kaggle/input/datasets/honeyyy09/cmmd-png1024/png1024`).
 
 Backup option: if Kaggle is unavailable, zip the same folders, upload to Google Drive, and use Colab
 (mount Drive, unzip to `/content` local disk before training — never train reading from Drive directly).

@@ -293,3 +293,44 @@ Format:
     subtype label.
   - Density was not used for stratifying; the dense share is 83.9% in test against 86.2% in train.
 - Next: Task 05 (upload the prepared data to Kaggle). [ANU] Kaggle account, phone verification and API token.
+
+## 2026-10-07 — Task 05: upload to Kaggle
+- Anu approved the audit. Kaggle username `honeyyy09`.
+- Decision by Anu (for task 07, written into `tasks/07_radiomics.md`): the 14 Stage 2 breasts whose lesion is
+  only a box get texture features but no shape features, and are marked `has_box_only`.
+- Done:
+  - `kaggle.json` was at `C:\Anushree\.kaggle\kaggle.json`; moved to `C:\Users\Anushree\.kaggle\kaggle.json`
+    (the standard place; outside the repo, never committed; `.gitignore` also lists `kaggle.json`).
+  - Added `has_box_only` to `pairs.csv`, `stage1.csv` and `stage2.csv` (from a new `n_box` column in
+    `mask_index.csv`): 14 Stage 2 breasts, 10 train / 2 val / 2 test. Re-ran tasks 03 (masks script), 04 and the
+    audit afterwards: splits unchanged, all checks pass, no problems.
+  - Wrote `scripts/05_package.py` → `data/kaggle_upload/` and `data/kaggle_code/` (both git-ignored), each with
+    a `dataset-metadata.json`; the data folder also holds `manifest.json` (the counts a notebook should find).
+  - Uploaded two **private** datasets with `kaggle datasets create --dir-mode zip`:
+    `honeyyy09/cmmd-png1024` (png1024.zip 855 MB, masks1024.zip, index.zip, splits.zip, manifest.json) and
+    `honeyyy09/cmmd-code` (`src/`, `requirements-train.txt`).
+  - Pushed the private test notebook `honeyyy09/cmmd-00-check` (`notebooks/00_check/`, GPU on, internet off,
+    both datasets attached) with `kaggle kernels push`; it ran to COMPLETE; fetched its output with
+    `kaggle kernels output` → `reports/05_kaggle_check.json`.
+- Numbers (counted on Kaggle by the notebook):
+  - **5,202 PNGs and 1,385 masks arrived** (manifest says 5,202 and 1,385). PNG bytes 895,567,571.
+  - 8 index files, 3 split files. `pairs.csv` 2,601 rows. Stage 1 1,856 breasts (train 1,299 / val 278 /
+    test 279). Stage 2 671 patients (469 / 101 / 101). E0 1,342 images. `has_box_only` 14.
+  - 0 PNGs and 0 masks named in `pairs.csv` are missing; 0 patients in two Stage 1 splits.
+  - One Stage 2 breast opened (D2-0001): CC 385 × 1024, MLO 272 × 1024, mask 272 × 1024, 8-bit greyscale.
+  - `src.config` imports from the code dataset. GPU: 2 × Tesla T4, CUDA available, torch 2.11.0, Python 3.13.15.
+  - Upload folder 865 MB. Notebook run time under 1 minute.
+- Surprises:
+  - Datasets mount at `/kaggle/input/datasets/honeyyy09/<name>/`, not `/kaggle/input/<name>/` as the task
+    files assumed. Notebooks must search for the folder instead of hard-coding the path (noted in task 06).
+  - monai, pyradiomics and grad-cam are NOT preinstalled on Kaggle (timm, shap, SimpleITK, scikit-learn and
+    OpenCV are). Training notebooks need Internet ON to `pip install` them.
+  - Kaggle runs Python 3.13. pyradiomics is an old compiled package and may not install on 3.13: a risk for
+    task 07, not tested yet.
+  - Notebooks now get the code from the `cmmd-code` dataset, not a GitHub clone, so no GitHub token is needed;
+    the code dataset must be re-uploaded whenever `src/` changes (command in `tasks/06_stage1_training.md`).
+  - `index/png_index.csv` and `dicom_index.csv` on Kaggle contain the laptop's DICOM paths
+    (`C:\Users\Anushree\Downloads\...`). Harmless on a private dataset; remove the column before ever making
+    the dataset public.
+  - The dataset licence field is set to "unknown"; set the real CMMD / TOMPEI licence before any public release.
+- Next: Task 06 (Stage 1 training code, tested locally on CPU, then run on Kaggle GPU).
