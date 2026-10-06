@@ -78,6 +78,8 @@ Subgroups for later reporting (Stage 1 breasts):
 | not dense                                 |     179 |    35 |     45 |   259 |
 | density missing                           |       0 |     0 |      0 |     0 |
 
+Stage 2 breasts whose lesion is only a box (`has_box_only`; texture features but no shape features in task 07): 14 (train / val / test: [10, 2, 2])
+
 Stage 2 patients by density and split:
 
 | density             |   train |   val |   test |

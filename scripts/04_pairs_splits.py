@@ -75,7 +75,7 @@ def main():
     png = pd.read_csv(idx_dir / "png_index.csv").merge(
         pd.read_csv(idx_dir / "image_sides.csv")[["png", "side_corrected"]], on="png")
     breasts = pd.read_csv(idx_dir / "breast_labels.csv")
-    masks = pd.read_csv(idx_dir / "mask_index.csv")[["patient_id", "side", "mask", "lesion_labels"]]
+    masks = pd.read_csv(idx_dir / "mask_index.csv")[["patient_id", "side", "mask", "lesion_labels", "n_box"]]
     stage2_ids = set(pd.read_csv(idx_dir / "stage2_patients.csv")["patient_id"])
 
     # ---- 1. one row per breast with one CC and one MLO (side = corrected side)
@@ -94,6 +94,9 @@ def main():
     pairs["label"] = pairs["cmmd_class"].map({"Benign": 0, "Malignant": 1})      # empty if no CMMD row
     # True / False, and empty where TOMPEI gives no density ("boolean" is the pandas type that allows empty)
     pairs["dense"] = pairs["density"].isin(DENSE).astype("boolean").mask(pairs["density"].isna())
+    # True when every outlined lesion of the breast is only a box (a rectangle, not the real lesion shape).
+    # Task 07 gives these breasts texture features but no shape features.
+    pairs["has_box_only"] = pairs["mask"].notna() & (pairs["n_box"] == pairs["n_lesions"])
     pairs["qc_note"] = [QC_NOTES.get(k, "") for k in zip(pairs["patient_id"], pairs["side"])]
     pairs["stage1_status"] = "in Stage 1"
     pairs.loc[pairs["t_class"] == "Exclusion", "stage1_status"] = "excluded: TOMPEI exclusion"
@@ -121,7 +124,7 @@ def main():
     pairs["split"] = pairs["patient_id"].map(assignment)           # empty for patients with no Stage 1 breast
 
     cols = ["patient_id", "side", "split", "label", "cmmd_class", "subtype", "age", "abnormality", "png_cc",
-            "png_mlo", "mask", "t_class", "density", "dense", "birads", "n_lesions", "lesion_labels", "cohort",
+            "png_mlo", "mask", "t_class", "density", "dense", "birads", "n_lesions", "lesion_labels", "has_box_only", "cohort",
             "exclusion_reason", "cmmd_side_original", "qc_note", "in_stage1", "in_stage2", "stage1_status"]
     pairs = pairs[cols]
     pairs.to_csv(idx_dir / "pairs.csv", index=False)
@@ -232,6 +235,9 @@ def main():
     }).T.reindex(columns=SPLITS).fillna(0).astype(int)
     sg["all"] = sg.sum(axis=1)
     say(sg.to_markdown())
+    say(f"\nStage 2 breasts whose lesion is only a box (`has_box_only`; texture features but no shape features in "
+        f"task 07): {int(stage2['has_box_only'].sum())} (train / val / test: "
+        f"{[int(stage2.loc[stage2['split'] == s, 'has_box_only'].sum()) for s in SPLITS]})")
     say("\nStage 2 patients by density and split:\n")
     say(pd.crosstab(stage2["density"].fillna("(missing)"), stage2["split"]).reindex(columns=SPLITS).to_markdown())
 

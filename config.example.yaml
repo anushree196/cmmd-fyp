@@ -20,3 +20,6 @@ png_height: 1024           # output height in pixels; width keeps the aspect rat
 flip_to_left: true         # mirror right breasts so every breast faces the same way
 num_workers: 4             # parallel processes; set to (CPU cores - 2)
 seed: 42
+
+# Kaggle account that owns the private datasets (task 05)
+kaggle_username: "your-kaggle-username"

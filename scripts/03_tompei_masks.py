@@ -75,6 +75,8 @@ def make_mask(rec, mask_dir):
             n_lesions=len(lesions),
             lesion_labels=",".join(sorted({l["label"].strip() for l in lesions})),
             n_polyline=sum(l.get("type") == "Polyline" for l in lesions),
+            # a "box" = 6 points or fewer: the annotator drew a rectangle, not the lesion's real outline
+            n_box=sum(len(l["cgPoints"]) <= 6 for l in lesions),
             area_full_px=int((full > 0).sum()),
             # share of the outlined area that falls outside the PNG's crop box (0 = nothing lost)
             cut_off_share=round(1 - (crop > 0).sum() / max((full > 0).sum(), 1), 4),
