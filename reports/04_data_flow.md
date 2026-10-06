@@ -34,23 +34,25 @@ QC-flagged breasts (all 2,601 checked): [{'patient_id': 'D1-0951', 'side': 'R', 
 
 Every patient is assigned once. Strata used for the assignment (patients):
 
-| stratum                           |   train |   val |   test |   all |
-|:----------------------------------|--------:|------:|-------:|------:|
-| Stage 2: HER2-enriched            |      88 |    19 |     19 |   126 |
-| Stage 2: Luminal A                |      98 |    21 |     21 |   140 |
-| Stage 2: Luminal B                |     235 |    50 |     50 |   335 |
-| Stage 2: triple negative          |      49 |    10 |     11 |    70 |
-| benign only                       |     321 |    69 |     69 |   459 |
-| malignant, not in Stage 2         |     429 |    92 |     92 |   613 |
-| one benign + one malignant breast |      13 |     3 |      3 |    19 |
+| stratum                              |   train |   val |   test |   all |
+|:-------------------------------------|--------:|------:|-------:|------:|
+| Stage 2: HER2-enriched               |      88 |    19 |     19 |   126 |
+| Stage 2: Luminal A                   |      98 |    21 |     21 |   140 |
+| Stage 2: Luminal B                   |     234 |    50 |     51 |   335 |
+| Stage 2: triple negative             |      49 |    11 |     10 |    70 |
+| benign only, lesion visible          |     136 |    29 |     29 |   194 |
+| benign only, no visible lesion       |     186 |    39 |     40 |   265 |
+| malignant, not in Stage 2, invisible |      95 |    21 |     20 |   136 |
+| malignant, not in Stage 2, visible   |     334 |    71 |     72 |   477 |
+| one benign + one malignant breast    |      13 |     3 |      3 |    19 |
 
 **Stage 1, breasts per split**
 
 | cmmd_class   | train       | val         | test        | all          |
 |:-------------|:------------|:------------|:------------|:-------------|
-| Benign       | 375 (29.1%) | 84 (30.0%)  | 90 (31.4%)  | 549 (29.6%)  |
-| Malignant    | 914 (70.9%) | 196 (70.0%) | 197 (68.6%) | 1307 (70.4%) |
-| total        | 1289        | 280         | 287         | 1856         |
+| Benign       | 385 (29.6%) | 82 (29.5%)  | 82 (29.4%)  | 549 (29.6%)  |
+| Malignant    | 914 (70.4%) | 196 (70.5%) | 197 (70.6%) | 1307 (70.4%) |
+| total        | 1299        | 278         | 279         | 1856         |
 
 Stage 1 patients per split: {'train': 1233, 'val': 264, 'test': 265}
 
@@ -58,32 +60,32 @@ Stage 1 patients per split: {'train': 1233, 'val': 264, 'test': 265}
 
 | subtype         | train       | val        | test       | all         |
 |:----------------|:------------|:-----------|:-----------|:------------|
-| HER2-enriched   | 88 (18.7%)  | 19 (19.0%) | 19 (18.8%) | 126 (18.8%) |
-| Luminal A       | 98 (20.9%)  | 21 (21.0%) | 21 (20.8%) | 140 (20.9%) |
-| Luminal B       | 235 (50.0%) | 50 (50.0%) | 50 (49.5%) | 335 (49.9%) |
-| triple negative | 49 (10.4%)  | 10 (10.0%) | 11 (10.9%) | 70 (10.4%)  |
-| total           | 470         | 100        | 101        | 671         |
+| HER2-enriched   | 88 (18.8%)  | 19 (18.8%) | 19 (18.8%) | 126 (18.8%) |
+| Luminal A       | 98 (20.9%)  | 21 (20.8%) | 21 (20.8%) | 140 (20.9%) |
+| Luminal B       | 234 (49.9%) | 50 (49.5%) | 51 (50.5%) | 335 (49.9%) |
+| triple negative | 49 (10.4%)  | 11 (10.9%) | 10 (9.9%)  | 70 (10.4%)  |
+| total           | 469         | 101        | 101        | 671         |
 
 Subgroups for later reporting (Stage 1 breasts):
 
 |                                           |   train |   val |   test |   all |
 |:------------------------------------------|--------:|------:|-------:|------:|
-| malignant, TOMPEI Invisible               |      92 |    26 |     22 |   140 |
-| malignant, TOMPEI Malignant               |     822 |   170 |    175 |  1167 |
-| benign, TOMPEI Normal (no visible lesion) |     234 |    45 |     63 |   342 |
-| benign, TOMPEI Benign                     |     141 |    39 |     27 |   207 |
-| dense breast                              |    1107 |   239 |    251 |  1597 |
-| not dense                                 |     182 |    41 |     36 |   259 |
+| malignant, TOMPEI Invisible               |      99 |    21 |     20 |   140 |
+| malignant, TOMPEI Malignant               |     815 |   175 |    177 |  1167 |
+| benign, TOMPEI Normal (no visible lesion) |     242 |    50 |     50 |   342 |
+| benign, TOMPEI Benign                     |     143 |    32 |     32 |   207 |
+| dense breast                              |    1120 |   243 |    234 |  1597 |
+| not dense                                 |     179 |    35 |     45 |   259 |
 | density missing                           |       0 |     0 |      0 |     0 |
 
 Stage 2 patients by density and split:
 
 | density             |   train |   val |   test |
 |:--------------------|--------:|------:|-------:|
-| extremely dense     |      83 |    20 |     13 |
+| extremely dense     |      83 |    19 |     14 |
 | fatty               |       6 |     2 |      3 |
-| heterogeneous dense |     308 |    66 |     73 |
-| scattered           |      73 |    12 |     12 |
+| heterogeneous dense |     307 |    69 |     71 |
+| scattered           |      73 |    11 |     13 |
 
 ## 4. E0 split (image-wise 72 / 18 / 10, Stage 2 images, copies the baseline paper)
 

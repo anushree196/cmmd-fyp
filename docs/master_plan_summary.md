@@ -58,7 +58,8 @@ and compute one-vs-rest macro AUC (Master doc §7.1).
   transforms, CacheDataset and augmentation on these PNGs. The crop box, scale and flip of every image are saved,
   so TOMPEI polygons (drawn on the original DICOM pixels) can be mapped onto the PNGs exactly.
 - One patient split for both stages: every patient is assigned to train / val / test once (70/15/15, seed 42,
-  stratified by subtype for Stage 2 patients and by benign / malignant / mixed for the rest). `stage1.csv` and
+  stratified by subtype for Stage 2 patients; for the rest by benign with a visible lesion / benign with no
+  visible lesion / malignant visible / malignant invisible (TOMPEI class) / mixed). `stage1.csv` and
   `stage2.csv` are both cut from that assignment, so a Stage 2 test patient is never a Stage 1 training patient
   and the chained 5-class score is clean.
 - Input size: E0 uses 224 px to match the paper. Our own models (E1+) default to 512 px, because 224 px throws

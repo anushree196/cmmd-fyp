@@ -246,3 +246,50 @@ Format:
     Normal is 63 of 90 benign test breasts but 234 of 375 in train).
   - Stage 2 has only 11 "fatty" breasts in total (6 / 2 / 3).
 - Next: Task 05 (upload the prepared data to Kaggle). [ANU] Kaggle account, phone verification and API token.
+
+## 2026-10-07 — Audit of tasks 01–04, and re-split (supersedes the Task 04 split numbers)
+- Why: Anu asked for an independent audit before the Kaggle upload, and for the splits to be stratified by
+  TOMPEI class as well.
+- Done: wrote `scripts/05_audit.py`. It imports nothing from the earlier scripts and recounts from the DICOM
+  folder listing, the PNG and mask folders, the CSV tables and the two original spreadsheets →
+  `reports/05_audit.md`, `reports/05_audit_montage.png`, `reports/05_audit_masks_off_breast.png`.
+  Run once on the Task 04 state (all counts matched PROGRESS.md), then again after the re-split.
+- **Result: no problems found. Nothing in the data, labels, masks or pairing needed fixing.** The only change
+  made is the re-split below.
+  - Counts: all 38 logged numbers recount exactly (5,202 DICOMs / PNGs, 2,601 breasts, 1,775 patients, 1,385
+    masks, Stage 1 1,856 breasts and 1,762 patients, 549 / 1,307, Stage 2 671, and every split size). 13
+    cross-checks between files pass (for example every PNG is used by exactly one breast; git tracks no data).
+  - Leakage: 0 patients in two splits (Stage 1, Stage 2); all 671 Stage 2 patients have the same split in
+    `stage1.csv`; 0 images in two Stage 1 splits. E0 leaks by design (282 of 671 patients).
+  - Labels: 20 random breasts (seed 2026) traced field by field from the raw CMMD and TOMPEI sheets to
+    `pairs.csv`: 0 mismatches. The same comparison on all 2,601 breasts: 0 mismatches. All 1,872 CMMD rows are
+    used exactly once; exactly 10 breasts take their label from the other side's row (the known moves).
+  - Files: 5,202 PNGs and 1,385 masks all open. 0 blank, 0 all-white, 0 flat, 0 wrong size, 0 non-8-bit PNGs.
+    Masks: all 0/255 only, same size as their MLO PNG, 0 empty, 0 over half the image.
+  - Picture: 16 random Stage 2 test breasts (CC | MLO with outline | mask) look right by eye.
+- Re-split (`scripts/04_pairs_splits.py`): the patient strata now also use TOMPEI class. Stage 2 patients by
+  subtype (unchanged); benign-only patients split into "lesion visible" (194) and "no visible lesion" (265);
+  malignant patients not in Stage 2 into "visible" (477) and "invisible" (136); one benign + one malignant
+  breast (19). A new assert requires the Normal and Invisible shares to be within 3 points in every split.
+  610 of 1,762 patients changed split. Nothing had been trained, so no result depends on the old split.
+  - "Normal" among benign breasts, train / val / test: before 62.4% / 53.6% / 70.0%; now 62.9% / 61.0% / 61.0%.
+  - "Invisible" among malignant breasts: before 10.1% / 13.3% / 11.2%; now 10.8% / 10.7% / 10.2%.
+- Numbers, splits (final; train / val / test):
+  - Stage 1 patients 1,233 / 264 / 265. Breasts 1,299 / 278 / 279.
+    Benign 385 / 82 / 82; malignant 914 / 196 / 197 (malignant share 70.4% / 70.5% / 70.6%).
+  - Stage 2 patients 469 / 101 / 101. LumA 98 / 21 / 21; LumB 234 / 50 / 51; HER2 88 / 19 / 19; TN 49 / 11 / 10.
+  - Subgroups in Stage 1: Invisible cancers 99 / 21 / 20; benign TOMPEI Normal 242 / 50 / 50; benign TOMPEI
+    Benign 143 / 32 / 32; dense 1,120 / 243 / 234 (86.2% / 87.4% / 83.9%); not dense 179 / 35 / 45.
+  - E0 unchanged: 966 / 241 / 135 images (it does not depend on the patient split).
+- Surprises (not bugs):
+  - 60 of the 1,773 TOMPEI annotations are boxes (6 points or fewer), not traced outlines. All 60 are
+    architectural distortions ("dist"), and every "dist" lesion is a box. 32 Stage 2 breasts have at least one
+    box; 14 have only a box (10 / 2 / 2). Shape radiomics on those will describe the box, not the lesion: to
+    handle in task 07.
+  - 6 masks have under 90% of their area on breast pixels (lowest D1-1057 L, 68%). Looked at all 6: each
+    contains a box whose corners overhang the skin edge. Not misalignment.
+  - D2-0220 has a subtype and an outlined cancer but is correctly not in Stage 2: the subtype (Luminal B)
+    belongs to the right breast, which TOMPEI excludes; the outlined left breast is a second cancer with no
+    subtype label.
+  - Density was not used for stratifying; the dense share is 83.9% in test against 86.2% in train.
+- Next: Task 05 (upload the prepared data to Kaggle). [ANU] Kaggle account, phone verification and API token.

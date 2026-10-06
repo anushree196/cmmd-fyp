@@ -103,9 +103,16 @@ def main():
 
     # ---- 3. ONE split per patient, over all Stage 1 patients
     s1 = pairs[pairs["in_stage1"]]
-    pat = s1.groupby("patient_id").agg(n_breasts=("label", "size"), any_mal=("label", "max"), any_ben=("label", "min"))
-    pat["stratum"] = "malignant, not in Stage 2"
-    pat.loc[pat["any_mal"] == 0, "stratum"] = "benign only"
+    # Strata also use TOMPEI's class, so "Normal" benign breasts (no visible lesion) and "Invisible" cancers are
+    # spread evenly over train / val / test. These subgroups get their own results later.
+    pat = s1.groupby("patient_id").agg(
+        n_breasts=("label", "size"), any_mal=("label", "max"), any_ben=("label", "min"),
+        t_benign=("t_class", lambda c: (c == "Benign").any()),        # a benign lesion that is visible
+        t_malignant=("t_class", lambda c: (c == "Malignant").any()))  # a cancer that is visible
+    pat["stratum"] = "malignant, not in Stage 2, " + pat["t_malignant"].map({True: "visible", False: "invisible"})
+    benign_only = pat["any_mal"] == 0
+    pat.loc[benign_only, "stratum"] = "benign only, " + pat.loc[benign_only, "t_benign"].map(
+        {True: "lesion visible", False: "no visible lesion"})
     pat.loc[(pat["any_mal"] == 1) & (pat["any_ben"] == 0), "stratum"] = "one benign + one malignant breast"
     s2_sub = pairs[pairs["in_stage2"]].set_index("patient_id")["subtype"]
     pat.loc[s2_sub.index, "stratum"] = "Stage 2: " + s2_sub        # Stage 2 patients are stratified by subtype
@@ -151,6 +158,13 @@ def main():
             assert gap < 0.03, f"stage2 {s} {sub}: share off by {gap:.3f}"
             gap = abs((e0.loc[e0["split"] == s, "subtype"] == sub).mean() - (e0["subtype"] == sub).mean())
             assert gap < 0.03, f"e0 {s} {sub}: share off by {gap:.3f}"
+    # the TOMPEI subgroups are spread evenly too: share within 3 percentage points in every split
+    ben, mal = stage1[stage1["label"] == 0], stage1[stage1["label"] == 1]
+    for s in SPLITS:
+        gap = abs((ben.loc[ben["split"] == s, "t_class"] == "Normal").mean() - (ben["t_class"] == "Normal").mean())
+        assert gap < 0.03, f"stage1 {s}: share of 'Normal' among benign off by {gap:.3f}"
+        gap = abs((mal.loc[mal["split"] == s, "t_class"] == "Invisible").mean() - (mal["t_class"] == "Invisible").mean())
+        assert gap < 0.03, f"stage1 {s}: share of 'Invisible' among malignant off by {gap:.3f}"
     # every file the tables point to exists
     for f in pd.concat([pairs["png_cc"], pairs["png_mlo"]]):
         assert (png_dir / f).is_file(), f"missing PNG {f}"
