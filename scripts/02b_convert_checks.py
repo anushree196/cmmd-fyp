@@ -57,6 +57,16 @@ def main():
     print(f"suspiciously small crops (width < 15% or height < 30%): {len(tiny)}")
     if len(tiny):
         print("  ", tiny["png"].head(10).tolist())
+    # how much non-black content (tissue, but also labels and markers) each crop left out
+    lost = df["outside_share"]
+    print(f"non-black pixels left outside the crop: median {lost.median():.4f}, 99th pct {lost.quantile(0.99):.3f}, "
+          f"max {lost.max():.3f} | images losing > 1%: {(lost > 0.01).sum()} | > 5%: {(lost > 0.05).sum()}")
+    worst = df.nlargest(6, "outside_share")
+    print("   most left out:", (worst["patient_id"] + "_" + worst["side"] + "_" + worst["view"]).tolist(),
+          worst["outside_share"].tolist())
+    widest = df.assign(w=crop_w).nlargest(3, "w")
+    print("   widest crops:", (widest["patient_id"] + "_" + widest["side"] + "_" + widest["view"]).tolist(),
+          widest["w"].round(2).tolist())
     print(f"PNG size: height {df['png_h'].min()}-{df['png_h'].max()}, width {df['png_w'].min()}-{df['png_w'].max()}"
           f" (median {df['png_w'].median():.0f})")
 

@@ -106,3 +106,40 @@ Format:
   - Far faster and smaller than the plan expected (1.7 min and 0.92 GB, not 20–60 min and 2–3 GB), because
     the DICOMs are 8-bit and the crops are narrow.
 - Next: [ANU] look at `reports/02_qc_montage.png` and `reports/02_qc_16bit.png`. Then Task 03 (TOMPEI masks).
+
+## 2026-10-07 — Task 02 follow-up: two-image check, crop threshold lowered (supersedes the Task 02 numbers)
+- Why: Anu looked at the QC pictures and asked for two images to be checked uncropped next to their PNG.
+- Done: wrote `scripts/02c_compare_original.py` (original with crop box | original 8× brighter | saved PNG, plus
+  numbers) → `reports/02_qc_original_vs_png.png`. Findings:
+  - D1-1343 L MLO: not cut off sideways. The skin line sits at the crop edge; it is invisible at normal
+    brightness because this 16-bit file has near-black fatty tissue. The breast is in the left half, not flipped.
+  - D2-0347 R MLO: not mirrored wrongly. In the original the breast is in the right half with the chest wall on
+    the right edge, so flipping it is correct. The bright patch is on the skin side in the original pixels too
+    (soft-edged, not saturated: 0% of pixels at 250–255), so it is something on the skin, not a burned-in label
+    and not a conversion artefact.
+  - Real problem found on D2-0347: the crop started at y = 598 and cut off the faint upper breast (27,586 pixels
+    brighter than 10 and 202,091 non-black pixels were outside the box).
+- Fix: the breast threshold went from "pixel > 10" to "pixel > 0" (any non-black pixel). Measured on all 5,202
+  images before changing: with > 10, 529 images lost more than 1% of their non-black pixels and 81 lost more
+  than 5%; with > 0 that is 142 and 11. PNGs deleted and reconverted (third and final run). `png_index.csv` has
+  a new column `outside_share` = share of non-black pixels left outside the crop.
+- Numbers (final, these replace the Task 02 numbers above):
+  - 5,202 converted, 0 failed, 5,202 PNGs on disk, 1.7 min, `data/png1024` = 0.90 GB.
+  - PNGs 1024 px tall, width 203–818 (median 400).
+  - Crop as a share of the original: width min 0.16 / median 0.41 / max 0.93; height min 0.45 / median 0.91 /
+    max 1.00.
+  - Flipped 2,519 / not flipped 2,683; the same 15 images (9 patients) disagree with the side tag.
+  - `outside_share`: median 0.0000, 99th percentile 0.021, max 0.240.
+  - After the fix: D2-0347 R MLO crop is y 0–2271 with 0 non-black pixels outside; D1-1343 L MLO crop is
+    x 0–801, y 0–1901 with 5,890 non-black pixels outside (a thin strip below the breast at the image edge).
+  - 16-bit brightness check unchanged: 58 and 65 against a median of 62.
+- Outliers looked at (`reports/02_qc_crop_outliers.png`, the 3 images with the highest `outside_share` and the
+  2 widest crops):
+  - D1-0059 R CC (0.167) and D2-0654 R CC (0.147): what is left out is a separate bright object at the image
+    edge that is not the breast. Dropping it is what we want.
+  - D1-0951 R MLO (0.240): an odd source image with black holes inside the tissue; the upper strip (pectoral
+    area) is disconnected from the breast and is left out. Not fixable by a threshold. Flagged, kept.
+  - D2-0607 R MLO and D2-0440 L MLO (widest crops, 0.89 and 0.93 of the width): the source images really do
+    contain that much non-black content connected to the breast (chest/abdomen, a band along the top). Kept.
+  - Not checked by eye: the other 139 images with `outside_share` > 1%.
+- Next: Task 03 (TOMPEI masks).

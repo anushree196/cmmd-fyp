@@ -42,14 +42,16 @@ def dicom_to_uint8(ds):
     return img
 
 
-def breast_box(img, margin=10, threshold=10):
+def breast_box(img, margin=10, threshold=0):
     """Find the breast = the largest region that is not black background.
 
     Returns the bounding box (x0, y0, x1, y1) and whether the breast sits in the left half of the image.
 
-    The CMMD background is exactly 0, so a fixed low threshold separates breast from background. (An automatic
-    Otsu threshold was tried first: it landed around 43, inside the breast, and cut off fatty tissue and skin
-    on about 40% of images.) Taking the largest connected region drops small text labels and markers.
+    The CMMD background is exactly 0, so "any pixel above 0" separates breast from background. Two higher
+    thresholds were tried first and rejected: an automatic Otsu threshold landed around 43, inside the breast,
+    and cut off fatty tissue and skin on about 40% of images; a fixed threshold of 10 still cut off faint
+    upper-breast tissue on about 500 images. Taking the largest connected region drops text labels and markers
+    that do not touch the breast.
     """
     blur = cv2.GaussianBlur(img, (5, 5), 0)
     mask = (blur > threshold).astype(np.uint8)
@@ -84,6 +86,9 @@ def convert_one(rec, out_dir, height, flip_to_left):
         img = dicom_to_uint8(ds)
         (x0, y0, x1, y1), on_left = breast_box(img)
         crop = img[y0:y1, x0:x1]
+        # QC number: what share of the non-black pixels did the crop leave out? (0 = nothing lost)
+        nonblack = int((img > 0).sum())
+        outside_share = (nonblack - int((crop > 0).sum())) / max(nonblack, 1)
         # orientation comes from the pixels (which half of the full image holds the breast), not from the
         # side tag, so a wrong tag can never produce a wrongly mirrored image
         flipped = bool(flip_to_left and not on_left)
@@ -95,7 +100,8 @@ def convert_one(rec, out_dir, height, flip_to_left):
             small = cv2.resize(np.ascontiguousarray(crop), (width, height), interpolation=cv2.INTER_AREA)
             cv2.imwrite(str(out), small)
         info.update(orig_h=img.shape[0], orig_w=img.shape[1], crop_x0=x0, crop_y0=y0, crop_x1=x1,
-                    crop_y1=y1, flipped=flipped, scale=scale, png_h=height, png_w=width, error=None)
+                    crop_y1=y1, flipped=flipped, scale=scale, png_h=height, png_w=width,
+                    outside_share=round(outside_share, 4), error=None)
     except Exception as e:
         info["error"] = repr(e)
     return info

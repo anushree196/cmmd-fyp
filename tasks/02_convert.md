@@ -8,7 +8,7 @@ This is the only time the 21 GB of DICOMs are read. Output is ~2–3 GB.
 1. Read pixels with pydicom. Invert if `MONOCHROME1` (none are).
 2. 8-bit files (5,200 of 5,202): keep the pixel values exactly as stored, no windowing, no stretch.
    16-bit files (2, patient D1-1343): divide the full 0–65535 range down to 0–255.
-3. Find the breast: pixels above a fixed low threshold (> 10; the background is exactly 0) → largest connected
+3. Find the breast: every non-black pixel (> 0; the background is exactly 0) → largest connected
    component → bounding box (+ small margin). This removes the black background and labels/markers.
 4. Mirror images whose breast sits in the right half (`flip_to_left: true`) so all breasts face the same way.
    Decided from the pixels, not from the side tag.
