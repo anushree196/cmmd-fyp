@@ -45,12 +45,22 @@ and compute one-vs-rest macro AUC (Master doc §7.1).
   (Anu, 2026-10-07, after task 01.)
 - The 1,458 images with no clinical row (the other breast of 729 D2 patients) are **excluded** from training and
   evaluation; nothing says they are benign. They are counted in the data-flow report. (Anu, 2026-10-07.)
+- Stage 1 label = CMMD's benign / malignant (the biopsy result), with TOMPEI's left/right corrections applied.
+  TOMPEI's "Normal" (benign, no lesion locatable) and "Invisible" (malignant, not locatable) breasts are
+  **kept**: they describe visibility, not pathology. Only the 16 labelled breasts TOMPEI recommends excluding
+  are dropped → 549 benign / 1,307 malignant breasts. TOMPEI class, breast density and BI-RADS are carried as
+  extra columns in the pair table so results can be reported separately for "Invisible" cancers and dense
+  breasts. (Anu, 2026-10-07, after task 03.)
 
 ## Decisions made in this kit (Claude's defaults; Anu can change them)
 - DICOMs are converted **once** on the laptop to 8-bit PNG (1024 px tall, breast-cropped, right breasts mirrored).
   Only the PNGs (~2–3 GB) go to the cloud, never the 21 GB of DICOMs. MONAI is still used on Kaggle for
   transforms, CacheDataset and augmentation on these PNGs. The crop box, scale and flip of every image are saved,
   so TOMPEI polygons (drawn on the original DICOM pixels) can be mapped onto the PNGs exactly.
+- One patient split for both stages: every patient is assigned to train / val / test once (70/15/15, seed 42,
+  stratified by subtype for Stage 2 patients and by benign / malignant / mixed for the rest). `stage1.csv` and
+  `stage2.csv` are both cut from that assignment, so a Stage 2 test patient is never a Stage 1 training patient
+  and the chained 5-class score is clean.
 - Input size: E0 uses 224 px to match the paper. Our own models (E1+) default to 512 px, because 224 px throws
   away most of the detail in a mammogram. Report both honestly.
 

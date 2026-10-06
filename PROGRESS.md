@@ -201,3 +201,48 @@ Format:
   - 53 outlines are of type "Polyline"; they are filled as closed shapes like the rest. Not checked one by one.
 - Next: [ANU] look at `reports/03_mask_overlay.png`. Decision needed before task 04: how Stage 1 uses TOMPEI's
   classes (Normal / Invisible / Exclusion). Then Task 04 (pairs + splits).
+
+## 2026-10-07 — Task 04: CC/MLO pairs and patient-wise splits
+- Decision by Anu (before the run, now in `docs/master_plan_summary.md`): Stage 1 label = CMMD benign /
+  malignant with TOMPEI side corrections; drop the 16 TOMPEI-excluded breasts; keep TOMPEI class, density and
+  BI-RADS as extra columns for later subgroup results ("Invisible" cancers, dense breasts).
+- **Damaged source image flagged: D1-0951 R MLO.** Black holes inside the tissue, upper strip disconnected and
+  cut off by the crop (found in the task 02 follow-up). It carries a `qc_note` in `pairs.csv`. TOMPEI
+  independently lists this breast as Exclusion ("Scale is incorrect"), so it is one of the 16 dropped breasts
+  and is in neither stage.
+- Done: wrote and ran `scripts/04_pairs_splits.py` → `data/index/pairs.csv` (all 2,601 breasts),
+  `data/splits/stage1.csv`, `data/splits/stage2.csv`, `data/splits/stage2_e0_imagewise.csv`,
+  `reports/04_data_flow.md`. All sanity checks are asserts and all pass: no patient in two splits; a patient
+  has the same split in both stage files; class shares in every split within 3 percentage points of overall
+  (Stage 1, Stage 2 and E0); every PNG and mask the tables point to exists; no missing label or age.
+- Design choice (mine, recorded under "Decisions made in this kit"): each patient is assigned to a split
+  **once**, and both stage files are cut from that assignment, instead of two independent splits as the task
+  file says. Otherwise a Stage 2 test patient could be a Stage 1 training patient and the chained 5-class
+  score would leak. Strata: Stage 2 patients by subtype; the rest by benign only / malignant / one benign +
+  one malignant breast.
+- Numbers, data flow:
+  - 5,202 images → 2,601 breasts, all paired (0 missing a view, 0 with more than one image per view).
+  - − 729 breasts (1,458 images) with no CMMD label. TOMPEI class of these: Normal 712 / Exclusion 9 / Benign 8.
+  - − 16 labelled breasts TOMPEI recommends excluding (phyllodes tumour 6, white objects 2, and 8 single reasons).
+  - **Stage 1 set: 1,856 breasts (3,712 images), 1,762 patients; benign 549 / malignant 1,307.**
+    94 patients have two breasts in the set; 30 have one benign and one malignant. D1 1,095 / D2 761 breasts.
+    Age 17–87, mean 47.4. 13 patients have no breast in Stage 1.
+  - Stage 1 by TOMPEI class: benign = Benign 207 + Normal 342; malignant = Malignant 1,167 + Invisible 140.
+  - **Stage 2 set: 671 patients (1,342 images)**: LumA 140 / LumB 335 / HER2 126 / TN 70 (unchanged from task 03).
+- Numbers, splits (train / val / test):
+  - Stage 1 patients 1,233 / 264 / 265. Breasts 1,289 / 280 / 287.
+    Benign 375 / 84 / 90; malignant 914 / 196 / 197 (malignant share 70.9% / 70.0% / 68.6%; overall 70.4%).
+  - Stage 2 patients 470 / 100 / 101. LumA 98 / 21 / 21; LumB 235 / 50 / 50; HER2 88 / 19 / 19; TN 49 / 10 / 11.
+  - Subgroups in Stage 1: Invisible cancers 92 / 26 / 22; benign with no visible lesion (TOMPEI Normal)
+    234 / 45 / 63; dense breasts 1,107 / 239 / 251; not dense 182 / 41 / 36; no density missing in Stage 1.
+  - E0 (image-wise 72/18/10 on the 1,342 Stage 2 images): 966 / 241 / 135 images.
+- Surprises:
+  - E0's image-wise split leaks heavily, as expected: 282 of 671 patients have their CC and MLO in different
+    splits, and 95 of the 135 E0 test images have the same breast's other view in E0 train. Worth quoting when
+    comparing E0 with E1.
+  - Only 11 triple-negative patients and 22 Invisible cancers are in the test split; subgroup results on them
+    will have wide error bars.
+  - The subgroup columns were not used for stratifying, so their shares vary by split (for example TOMPEI
+    Normal is 63 of 90 benign test breasts but 234 of 375 in train).
+  - Stage 2 has only 11 "fatty" breasts in total (6 / 2 / 3).
+- Next: Task 05 (upload the prepared data to Kaggle). [ANU] Kaggle account, phone verification and API token.
