@@ -66,3 +66,43 @@ Format:
   - Added `tabulate` to `requirements-local.txt` (pandas needs it to write markdown tables).
 - Next: Task 02 (DICOM → PNG). Decisions for Anu before task 04: whether Stage 1 trains per breast (my
   recommendation) and whether the 1,458 unlabelled images are left out (my recommendation).
+
+## 2026-10-07 — Task 02: DICOM → PNG
+- Decisions by Anu (before the run): Stage 1 trains per breast with per-patient splits; the 1,458 unlabelled
+  images are excluded and counted in the data-flow report (both now in `docs/master_plan_summary.md`).
+  Pixel values: 8-bit files are kept exactly as stored (no windowing, no percentile stretch); only the two
+  16-bit D1-1343 files are rescaled to 0–255.
+- Done: changed `scripts/02_convert.py` (pixel handling, breast finding, flip rule; details under Surprises),
+  ran the 20-image trial, then the full conversion → `data/png1024/` + `data/index/png_index.csv`.
+  Wrote `scripts/02b_convert_checks.py` (counts, flip vs side tag, crop sizes, 16-bit brightness check,
+  `reports/02_qc_16bit.png`). Regenerated `reports/02_qc_montage.png` on 48 random images.
+  Updated steps 1–4 of `tasks/02_convert.md` to describe what the script now does.
+- Numbers (final run):
+  - 5,202 converted, 0 failed (no `convert_errors.csv`), 5,202 PNGs on disk, none missing, no duplicate names.
+  - Time 1.7 min with 14 workers. `data/png1024` = 0.92 GB.
+  - PNGs are 1024 px tall, width 202–812 px (median 397).
+  - Crop kept, as a share of the original 2294 × 1914 image: width min 0.15 / median 0.40 / max 0.93;
+    height min 0.42 / median 0.90 / max 1.00. No crop kept the whole image; none is suspiciously small.
+  - Flipped 2,519, not flipped 2,683. Flip agrees with the side tag on 5,187 images.
+  - 16-bit check: the two files had an identity window (centre 32768, width 65536) and used the full 0–65535
+    range; the 8-bit files have an identity window too (centre 128, width 256). After dividing down, their
+    breast brightness (mean of non-black pixels) is 58 and 65; 300 random 8-bit images: 5th pct 42, median 62,
+    95th pct 91. So they sit on the same scale as everything else.
+- Surprises:
+  - The kit's Otsu threshold was wrong for this data. It landed around 43 (median), inside the breast, so the
+    crop cut off fatty tissue and skin: on 2,112 images the Otsu box was under 70% of the real breast area, and
+    47 crops were under 30% of the image height. The background is exactly 0 (median 74% of pixels), so the
+    script now uses a fixed threshold (pixel > 10) and keeps the largest connected region.
+  - The kit's flip rule (compare the two halves of the *cropped* image) was wrong on about 700 images
+    (720 disagreed with the side tag). It now asks which half of the *full* image holds the breast, which was
+    never ambiguous on any image.
+  - Because of these two bugs the first full run (1.8 min, 1.29 GB) was thrown away: PNGs deleted and
+    reconverted. All numbers above are from the second run.
+  - 15 images (9 patients) have a side tag that disagrees with where the breast actually is; list saved to
+    `data/index/side_tag_vs_pixels.csv`. Patients: D1-0252, D1-0690, D1-0711, D1-0999, D2-0041, D2-0112,
+    D2-0224, D2-0229, D2-0642. The PNG orientation is right either way (it comes from the pixels); whether the
+    *label* is wrong gets checked against TOMPEI's corrected labels in task 03.
+  - The PNG file name and the `side` column still carry the original DICOM side tag for those 15 images.
+  - Far faster and smaller than the plan expected (1.7 min and 0.92 GB, not 20–60 min and 2–3 GB), because
+    the DICOMs are 8-bit and the crops are narrow.
+- Next: [ANU] look at `reports/02_qc_montage.png` and `reports/02_qc_16bit.png`. Then Task 03 (TOMPEI masks).

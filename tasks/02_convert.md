@@ -4,11 +4,14 @@ Goal: `data/png1024/*.png` (8-bit, breast-cropped, same orientation) + `data/ind
 This is the only time the 21 GB of DICOMs are read. Output is ~2–3 GB.
 
 ## What the script does per image (`scripts/02_convert.py`)
-1. Read pixels with pydicom. Apply the VOI LUT / window if the file has one. Invert if `MONOCHROME1`.
-2. Scale to 0–255 (uint8).
-3. Find the breast: Otsu threshold → largest connected component → bounding box (+ small margin).
-   This removes the black background and labels/markers, which also shrinks the file.
-4. Mirror right-breast images (`flip_to_left: true`) so all breasts face the same way.
+(Steps 1–4 were changed on 2026-10-07 after looking at the real data; see PROGRESS.md, Task 02.)
+1. Read pixels with pydicom. Invert if `MONOCHROME1` (none are).
+2. 8-bit files (5,200 of 5,202): keep the pixel values exactly as stored, no windowing, no stretch.
+   16-bit files (2, patient D1-1343): divide the full 0–65535 range down to 0–255.
+3. Find the breast: pixels above a fixed low threshold (> 10; the background is exactly 0) → largest connected
+   component → bounding box (+ small margin). This removes the black background and labels/markers.
+4. Mirror images whose breast sits in the right half (`flip_to_left: true`) so all breasts face the same way.
+   Decided from the pixels, not from the side tag.
 5. Resize to `png_height` px tall, keeping aspect ratio. Save PNG named `{patient}_{L|R}_{CC|MLO}_{sop8}.png`.
 6. Record for every image: original size, crop box (x0, y0, x1, y1), flip flag, scale factor, output size.
    **Task 03 needs these to map TOMPEI polygons onto the PNGs. Do not drop them.**

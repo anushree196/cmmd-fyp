@@ -17,7 +17,6 @@ import cv2
 import numpy as np
 import pandas as pd
 import pydicom
-from pydicom.pixels import apply_voi_lut
 from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -25,29 +24,46 @@ from src.config import load_config
 
 
 def dicom_to_uint8(ds):
-    """Pixels -> 0..255, with the file's own VOI LUT / window applied and MONOCHROME1 inverted."""
+    """Pixels -> 0..255 with no contrast change.
+
+    Task 01 showed 5,200 of 5,202 CMMD files are already 8-bit with an identity window (centre 128, width 256),
+    so their pixel values are kept exactly as stored: no windowing, no percentile stretch.
+    The 2 files that are 16-bit (D1-1343) use the full 0..65535 range with an identity window too, so they are
+    mapped onto 0..255 by a fixed division. Every image therefore ends up on the same brightness scale.
+    """
     img = ds.pixel_array
-    if "VOILUTSequence" in ds or "WindowCenter" in ds:
-        img = apply_voi_lut(img, ds)
-    img = img.astype(np.float32)
-    lo, hi = np.percentile(img, 0.5), np.percentile(img, 99.5)
-    img = np.clip((img - lo) / max(hi - lo, 1e-6), 0, 1)
+    bits = int(ds.BitsStored)
+    if bits != 8:
+        max_value = 2 ** bits - 1  # 65535 for 16-bit
+        img = np.round(img.astype(np.float32) * (255.0 / max_value))
+    img = img.astype(np.uint8)
     if str(ds.get("PhotometricInterpretation", "")) == "MONOCHROME1":
-        img = 1.0 - img
-    return (img * 255).astype(np.uint8)
+        img = 255 - img
+    return img
 
 
-def breast_box(img, margin=10):
-    """Bounding box (x0, y0, x1, y1) of the largest bright region = the breast."""
+def breast_box(img, margin=10, threshold=10):
+    """Find the breast = the largest region that is not black background.
+
+    Returns the bounding box (x0, y0, x1, y1) and whether the breast sits in the left half of the image.
+
+    The CMMD background is exactly 0, so a fixed low threshold separates breast from background. (An automatic
+    Otsu threshold was tried first: it landed around 43, inside the breast, and cut off fatty tissue and skin
+    on about 40% of images.) Taking the largest connected region drops small text labels and markers.
+    """
     blur = cv2.GaussianBlur(img, (5, 5), 0)
-    _, mask = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    mask = (blur > threshold).astype(np.uint8)
     n, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
     if n <= 1:
-        return 0, 0, img.shape[1], img.shape[0]
+        return (0, 0, img.shape[1], img.shape[0]), True
     i = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
     x, y, w, h = stats[i, :4]
-    return (max(x - margin, 0), max(y - margin, 0),
-            min(x + w + margin, img.shape[1]), min(y + h + margin, img.shape[0]))
+    breast = labels == i
+    half = img.shape[1] // 2
+    on_left = bool(breast[:, :half].sum() >= breast[:, half:].sum())
+    box = (max(x - margin, 0), max(y - margin, 0),
+           min(x + w + margin, img.shape[1]), min(y + h + margin, img.shape[0]))
+    return box, on_left
 
 
 def transform_points(xs, ys, row):
@@ -66,11 +82,11 @@ def convert_one(rec, out_dir, height, flip_to_left):
     try:
         ds = pydicom.dcmread(rec["path"])
         img = dicom_to_uint8(ds)
-        x0, y0, x1, y1 = breast_box(img)
+        (x0, y0, x1, y1), on_left = breast_box(img)
         crop = img[y0:y1, x0:x1]
-        # decide orientation from the image itself: the breast's bright mass should sit on the left
-        left_heavier = crop[:, : crop.shape[1] // 2].mean() >= crop[:, crop.shape[1] // 2:].mean()
-        flipped = bool(flip_to_left and not left_heavier)
+        # orientation comes from the pixels (which half of the full image holds the breast), not from the
+        # side tag, so a wrong tag can never produce a wrongly mirrored image
+        flipped = bool(flip_to_left and not on_left)
         if flipped:
             crop = crop[:, ::-1]
         scale = height / crop.shape[0]
