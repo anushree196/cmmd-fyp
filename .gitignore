@@ -1,0 +1,13 @@
+config.yaml
+data/
+*.dcm
+*.png
+!reports/**/*.png
+*.zip
+*.pth
+*.pt
+*.ckpt
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+kaggle.json

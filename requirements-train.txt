@@ -1,0 +1,11 @@
+# Kaggle / Colab GPU notebooks (torch is preinstalled there)
+monai>=1.3
+timm
+scikit-learn
+pandas
+pyyaml
+tqdm
+grad-cam
+shap
+pyradiomics
+SimpleITK

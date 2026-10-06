@@ -1,0 +1,12 @@
+# Laptop (Windows, CPU). Python 3.11 recommended.
+pydicom>=3.0
+numpy>=1.26
+pandas>=2.2
+openpyxl
+pillow
+opencv-python
+tqdm
+pyyaml
+matplotlib
+scikit-learn
+kaggle

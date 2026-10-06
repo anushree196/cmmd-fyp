@@ -1,0 +1,22 @@
+# Copy this file to config.yaml and edit the paths. config.yaml is git-ignored.
+
+# The CMMD download from the TCIA Data Retriever (read-only, never modified)
+raw_root: "C:/Users/Anushree/Downloads/The-Chinese-Mammography-Database"
+dicom_dir: "cmmd"          # folder inside raw_root holding D1-xxxx / D2-xxxx patient folders
+metadata_dir: "metadata"   # folder inside raw_root from the retriever (metadata.csv etc.)
+
+# Clinical spreadsheet from the CMMD page on TCIA (CMMD_clinicaldata_revision.xlsx).
+# Leave as is if it is inside metadata/; otherwise put its full path here.
+clinical_xlsx: "C:/Users/Anushree/Downloads/The-Chinese-Mammography-Database/metadata/CMMD_clinicaldata_revision.xlsx"
+
+# TOMPEI-CMMD annotations (downloaded separately in task 03)
+tompei_dir: "C:/Users/Anushree/Downloads/TOMPEI-CMMD"
+
+# Where generated data goes (inside the repo, git-ignored)
+work_root: "data"
+
+# Conversion settings
+png_height: 1024           # output height in pixels; width keeps the aspect ratio
+flip_to_left: true         # mirror right breasts so every breast faces the same way
+num_workers: 4             # parallel processes; set to (CPU cores - 2)
+seed: 42
