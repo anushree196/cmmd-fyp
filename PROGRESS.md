@@ -143,3 +143,61 @@ Format:
     contain that much non-black content connected to the breast (chest/abdomen, a band along the top). Kept.
   - Not checked by eye: the other 139 images with `outside_share` > 1%.
 - Next: Task 03 (TOMPEI masks).
+
+## 2026-10-07 — Task 03: TOMPEI-CMMD masks and the Stage 2 set
+- Done: inspected the TOMPEI download; wrote `scripts/03_tompei_labels.py` (corrected sides and per-breast
+  labels → `data/index/image_sides.csv`, `data/index/breast_labels.csv`, `reports/03_tompei_labels.md`) and
+  `scripts/03_tompei_masks.py` (masks → `data/masks1024/`, `data/index/mask_index.csv`,
+  `data/index/stage2_patients.csv`, `reports/03_stage2_counts.md`, `reports/03_mask_overlay.png`,
+  `reports/03_mask_overlay_swapped.png`). Run order: labels script first, then masks script.
+- TOMPEI format (confirmed, matches the master doc):
+  - `annotations/TOMPEI-CMMD_v01_20250123/{patient}_MLO_{L|R}_AnnotationFile.json`. Each file is a list of
+    lesions; each lesion has `cgPoints` (list of `{x, y}`, in original DICOM pixels), `label` (mass, calc, dist,
+    FA, FAD, lipoma; 70 have a trailing space, "calc "), `type` (Draw 1,720 / Polyline 53), `_id`, `color`.
+  - 2,770 JSON files in the folder, but 1,385 are macOS junk copies under `__MACOSX`; 1,385 are real.
+  - `TOMPEI-CMMD_clinical_data_v01_20250121.xlsx`: sheets README, "Imaging Diagnosis Details Sheet" and
+    "Lesion Details Sheet", one row per breast (2,601), with 2–3 header rows each.
+  - Link to a CMMD image: by file name only (patient + MLO + side). There is no SOP UID in TOMPEI.
+- Link rule (decision): annotation → our MLO image of that patient with the same **corrected** side. Matching on
+  the DICOM side tag is wrong for 4 patients (the outline falls in the opposite half of the image).
+- Numbers, labels:
+  - TOMPEI class per breast: Malignant 1,167 / Normal 1,054 / Benign 215 / Invisible 140 / Exclusion 25.
+    "Normal" includes benign with no lesion locatable on the image; "Invisible" = malignant but not locatable.
+  - Image sides corrected on 16 images (8 patients): D1-0252, D1-0690, D1-0711 (TOMPEI "Reversed left and
+    right", both images); D1-0999, D2-0224, D2-0229, D2-0642 (the two MLO tags swapped); D2-0041 (the two CC
+    tags swapped). One image, D2-0112 L CC, disagrees with the pixels but keeps its tag (looks stored mirrored).
+    After correction: 2,601 breasts, identical to TOMPEI's 2,601, no duplicate (patient, side, view).
+  - CMMD label rows moved to the other breast: 10 (the 3 D1 patients above, plus D2-0048, D2-0132, D2-0153,
+    D2-0212, D2-0282, D2-0458, D2-0637, where TOMPEI found the cancer on the other side from the CMMD sheet).
+  - CMMD class vs TOMPEI class per breast, after the moves: CMMD Benign 556 = TOMPEI Benign 207 + Normal 342 +
+    Exclusion 7. CMMD Malignant 1,316 = Malignant 1,167 + Invisible 140 + Exclusion 9. No CMMD row 729 =
+    Normal 712 + Benign 8 + Exclusion 9. Ages agree everywhere.
+  - TOMPEI also gives breast density (heterogeneous dense 1,671 / extremely dense 551 / scattered 340 / fatty 30
+    / missing 9) and BI-RADS category per breast.
+- Numbers, masks:
+  - 1,385 annotation files, all MLO, 1,363 patients (D1 700 files, D2 685) → 1,385 masks, 0 failed, 3.8 MB.
+  - 1,773 lesions. Per breast: 1 lesion 1,069 / 2: 271 / 3: 26 / 4: 14 / 5: 3 / 6: 1 / 7: 1. Number of outlines
+    in each file equals TOMPEI's "Number of lesions" on all 1,385.
+  - No empty masks. Outlined area cut off by our crop box: none on 1,380 masks; 5 masks lose some (D1-1057 L
+    13.1%, D1-0992 L 7.3%, D2-0463 R 5.7%, D2-0326 L 5.5%, D2-0163 R 2.1%).
+  - Mask area as a share of the PNG: min 0.0004, median 0.026, max 0.368.
+  - Overlays checked by eye: outlines sit on the lesions for left and right breasts, including the 4 patients
+    with swapped MLO tags.
+- **Stage 2 set = subtype label AND lesion mask on that breast AND TOMPEI class Malignant: 671 patients**
+  (`data/index/stage2_patients.csv`, one breast per patient, every one has both a CC and an MLO PNG).
+  - Luminal A 140 (of 152), Luminal B 335 (of 376), HER2-enriched 126 (of 135), triple negative 70 (of 86).
+  - 78 of the 749 subtyped patients are lost: 75 Invisible (no outline exists), 3 Exclusion.
+  - Patients with a subtype label: 749. Patients with any TOMPEI mask: 1,363.
+  - Stage 2 age 21 to 87, mean 50.2. CMMD abnormality: mass 364 / both 219 / calcification 88.
+  - 6 Stage 2 patients have their subtype on the other breast from the CMMD sheet (TOMPEI's correction).
+- Surprises:
+  - TOMPEI has 1,385 annotated images, not ~2,436 as the plan said (fixed in `docs/master_plan_summary.md`).
+  - TOMPEI does not give "corrected view labels"; all views agree with ours. Its corrections are left/right.
+  - TOMPEI's classes are not just benign/malignant: 342 of the 556 CMMD-benign breasts are "Normal" (no lesion
+    locatable) and 140 of the 1,316 malignant ones are "Invisible". This matters for Stage 1 (see Next).
+  - TOMPEI recommends excluding 25 breasts (CV port 7, phyllodes tumour 6, white objects 3, and others).
+  - The PNG and mask file names still carry the original DICOM side tag; for the 16 corrected images the right
+    side is in `image_sides.csv` (`side_corrected`), which later steps must use.
+  - 53 outlines are of type "Polyline"; they are filled as closed shapes like the rest. Not checked one by one.
+- Next: [ANU] look at `reports/03_mask_overlay.png`. Decision needed before task 04: how Stage 1 uses TOMPEI's
+  classes (Normal / Invisible / Exclusion). Then Task 04 (pairs + splits).

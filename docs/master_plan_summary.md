@@ -5,8 +5,10 @@
   `D1-xxxx` (benign/malignant labels) and `D2-xxxx` (malignant with molecular subtype). Clinical sheet
   `CMMD_clinicaldata_revision.xlsx`: check real column names in task 01 (expected roughly ID1, LeftRight, Age,
   number, abnormality, classification, subtype — verify, do not trust this list).
-- **TOMPEI-CMMD** (TCIA analysis result): lesion polygon annotations for ~2,436 **MLO-only** images from ~1,363
-  patients, plus corrected left/right and view labels. There is **no CC mask**, ever.
+- **TOMPEI-CMMD** (TCIA analysis result): lesion polygon annotations for 1,385 **MLO-only** images (one per
+  breast, 1,773 lesions) from 1,363 patients, plus a corrected per-breast label sheet (2,601 breasts).
+  There is **no CC mask**, ever. (Counts measured in task 03; the earlier "~2,436 images" was wrong: 2,436 is
+  the number of breasts TOMPEI did not flag with an exclusion reason.)
 
 ## Stage 1 — benign vs malignant (all patients)
 Inputs: full CC + full MLO (uncropped) + age + lesion type. Shared EfficientNet-B3 encoder, View Attention,
