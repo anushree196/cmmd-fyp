@@ -30,6 +30,17 @@ def youden_threshold(df):
     return float(min(thr[best], 1.0))  # roc_curve can return inf for the first point
 
 
+def threshold_for_sensitivity(df, target=0.90):
+    """The highest threshold that still flags at least `target` of the cancers. Chosen on VALIDATION only.
+
+    Sort the cancers' probabilities from low to high; at most (1 - target) of them may fall below the threshold,
+    so the threshold is the probability of the first cancer that must still be caught.
+    """
+    pos = np.sort(df.loc[df["label"] == 1, "prob"].to_numpy())
+    allowed_missed = int(np.floor((1 - target) * len(pos)))
+    return float(pos[allowed_missed])
+
+
 def bootstrap_ci(df, fn, n=2000, seed=42):
     """95% interval of fn(df) by resampling patients. Draws that miss a class (AUC undefined) are skipped."""
     rng = np.random.default_rng(seed)

@@ -1,0 +1,13 @@
+{
+  "id": "honeyyy09/cmmd-03-stage1-test",
+  "title": "cmmd-03-stage1-test",
+  "code_file": "cmmd_03_stage1_test.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "dataset_sources": ["honeyyy09/cmmd-png1024", "honeyyy09/cmmd-code"],
+  "competition_sources": [],
+  "kernel_sources": ["honeyyy09/cmmd-02-stage1-train"]
+}

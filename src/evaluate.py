@@ -19,7 +19,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from src.data import find_data_root, make_dataset, read_split
-from src.metrics import summary
+from src.metrics import summary, threshold_for_sensitivity
 from src.models import DualViewNet
 from src.train import predict
 
@@ -59,6 +59,12 @@ def main(argv=None):
     cfg = json.loads((run / "run_config.json").read_text())
     val_metrics = json.loads((run / "metrics_val.json").read_text())
     thr = val_metrics["chosen_threshold"]
+    # Both operating points come from VALIDATION predictions only:
+    #   youden     - the rule fixed in the code before any results (max sensitivity + specificity - 1)
+    #   val_sens90 - added after seeing the val results (Youden gave only 55% val sensitivity): the highest
+    #                threshold that keeps at least 90% of the validation cancers flagged
+    val_pred = pd.read_csv(run / "val_predictions.csv")
+    thresholds = {"youden": thr, "val_sens90": threshold_for_sensitivity(val_pred, 0.90)}
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     root = find_data_root(args.data_root or cfg.get("data_root"))
 
@@ -73,13 +79,20 @@ def main(argv=None):
     test.assign(split="test").to_csv(out / "test_predictions.csv", index=False)
 
     metrics = {"split": "test", "scored_at": time.strftime("%Y-%m-%d %H:%M:%S"), "forced_rerun": args.force,
-               "threshold_from_val": thr, **summary(test, thr), "subgroups": subgroups(test, thr)}
+               "threshold_from_val": thr, **summary(test, thr), "subgroups": subgroups(test, thr),
+               "operating_points": {name: {"threshold": t, "val": summary(val_pred, t), "test": summary(test, t),
+                                           "test_subgroups": subgroups(test, t)}
+                                    for name, t in thresholds.items()}}
     (out / "metrics_test.json").write_text(json.dumps(metrics, indent=2))
     if out != run:  # keep the training files next to the test results
         for f in ["run_config.json", "metrics_val.json", "val_predictions.csv", "training_log.csv", "training_curves.png"]:
             if (run / f).exists():
                 shutil.copy2(run / f, out / f)
     print(json.dumps({k: metrics[k] for k in ["auc", "auc_ci95", "sensitivity", "specificity", "confusion"]}, indent=1))
+    for name, op in metrics["operating_points"].items():
+        print(f"  operating point {name}: threshold {op['threshold']:.4f} | val sens {op['val']['sensitivity']:.3f} "
+              f"spec {op['val']['specificity']:.3f} | test sens {op['test']['sensitivity']:.3f} "
+              f"spec {op['test']['specificity']:.3f}")
     for name, s in metrics["subgroups"].items():
         print(f"  {name}: n={s['n_breasts']} AUC={s.get('auc', float('nan')):.3f} {s.get('auc_ci95', '')} "
               f"sens={s.get('sensitivity', float('nan')):.3f} spec={s.get('specificity', float('nan')):.3f}")

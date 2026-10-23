@@ -24,7 +24,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from src.data import find_data_root, make_dataset, read_split
-from src.metrics import auc, summary, youden_threshold
+from src.metrics import auc, summary, threshold_for_sensitivity, youden_threshold
 from src.models import DualViewNet
 
 
@@ -159,6 +159,8 @@ def main(argv=None):
     metrics = {"split": "val", "best_epoch": best_epoch, "epochs_run": len(log),
                "chosen_threshold": thr, "threshold_rule": "Youden J (max sensitivity + specificity - 1) on val",
                "mean_view_weight_cc": float(val["w_cc"].mean()), "mean_view_weight_mlo": float(val["w_mlo"].mean()),
+               # second operating point, also from val: keep at least 90% of the cancers flagged
+               "threshold_val_sens90": threshold_for_sensitivity(val, 0.90) if (val["label"] == 1).any() else None,
                "class_weights": class_w.tolist(), "train_minutes": (time.time() - t_start) / 60,
                "device": str(device), "gpu": torch.cuda.get_device_name(0) if device.type == "cuda" else None,
                **summary(val, thr)}
