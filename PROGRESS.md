@@ -380,7 +380,7 @@
     in each). The test number is the one to report.
   - Youden's threshold transferred badly: val specificity 97.6% fell to 84.1% on test. The val-sens-90 threshold
     held up better on sensitivity (90.3% → 84.3%).
-  - "Invisible" cancers are much harder (AUC 0.61, CI includes 0.5 territory near the bottom), and dense breasts
+  - "Invisible" cancers are much harder: AUC 0.61, and its CI (0.468–0.739) includes 0.5, so on this test set the model is not clearly better than chance for them. Dense breasts
     are harder than non-dense (0.76 vs 0.87), as expected; both subgroups are small, so the CIs are wide.
   - Scoring took 12.6 min of a GPU session, mostly the CPU bootstrap. Evaluation notebooks should run with the
     GPU off (or the bootstrap should be vectorised).
