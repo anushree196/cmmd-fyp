@@ -59,17 +59,34 @@ class LoadPair:
         return item
 
 
-def augmentations():
+def augmentations(size, strength="light"):
     """Random changes for TRAINING images only. No flips: orientation was standardised in task 02.
-    Each view gets its own random values (the CC and MLO are different pictures)."""
+    Each view gets its own random values (the CC and MLO are different pictures).
+
+    light  = Stage 1 v1 (task 06): rotation up to ~10 degrees, +-10% size, +-20 px shift, mild contrast.
+    strong = Stage 1 v2 recipe search: random resized crop keeping 80-100% of the area, rotation up to
+             +-15 degrees, stronger contrast, and brightness changes.
+    """
     out = []
     for v in VIEWS:
-        out += [
-            T.RandAffined(keys=v, prob=0.7, rotate_range=0.17, scale_range=0.10, translate_range=(20, 20),
-                          padding_mode="zeros"),           # up to ~10 degrees, +-10% size, +-20 px shift
-            T.RandAdjustContrastd(keys=v, prob=0.5, gamma=(0.8, 1.25)),
-            T.RandScaleIntensityd(keys=v, prob=0.5, factors=0.10),
-        ]
+        if strength == "light":
+            out += [
+                T.RandAffined(keys=v, prob=0.7, rotate_range=0.17, scale_range=0.10, translate_range=(20, 20),
+                              padding_mode="zeros"),
+                T.RandAdjustContrastd(keys=v, prob=0.5, gamma=(0.8, 1.25)),
+                T.RandScaleIntensityd(keys=v, prob=0.5, factors=0.10),
+            ]
+        else:
+            out += [
+                # random resized crop: each side keeps 89.4-100% (area 80-100%), then back to size x size
+                T.RandScaleCropd(keys=v, roi_scale=0.894, max_roi_scale=1.0, random_size=True),
+                T.Resized(keys=v, spatial_size=(size, size)),
+                T.RandAffined(keys=v, prob=0.7, rotate_range=0.26, translate_range=(0.04 * size, 0.04 * size),
+                              padding_mode="zeros"),        # rotation up to +-15 degrees, shift up to 4%
+                T.RandAdjustContrastd(keys=v, prob=0.5, gamma=(0.7, 1.4)),   # contrast (gamma curve)
+                T.RandScaleIntensityd(keys=v, prob=0.5, factors=0.15),      # contrast (x 0.85-1.15)
+                T.RandShiftIntensityd(keys=v, prob=0.5, offsets=0.08),      # brightness (+-0.08)
+            ]
     return out
 
 
@@ -79,10 +96,10 @@ def to_records(df):
              "label": int(r.label), "patient_id": r.patient_id, "side": r.side} for r in df.itertuples()]
 
 
-def make_dataset(df, data_root, size, train, cache_rate=1.0, workers=0):
+def make_dataset(df, data_root, size, train, cache_rate=1.0, workers=0, aug="light"):
     steps = [LoadPair(Path(data_root) / "png1024", size)]
     if train:
-        steps += augmentations()
+        steps += augmentations(size, aug)
     steps += [T.EnsureTyped(keys=VIEWS, track_meta=False)]  # plain torch tensors
     return CacheDataset(to_records(df), T.Compose(steps), cache_rate=cache_rate, num_workers=workers or None,
                         progress=False)

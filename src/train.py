@@ -24,6 +24,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 
 from src.data import find_data_root, make_dataset, read_split
+from src.folds import make_folds
 from src.metrics import auc, summary, threshold_for_sensitivity, youden_threshold
 from src.models import DualViewNet
 
@@ -38,8 +39,14 @@ def parse(argv=None):
     ap.add_argument("--img-size", type=int, default=512)
     ap.add_argument("--epochs", type=int, default=20)
     ap.add_argument("--batch-size", type=int, default=8)
-    ap.add_argument("--lr", type=float, default=1e-4)
+    ap.add_argument("--lr", type=float, default=1e-4, help="learning rate of the head (and the backbone unless --backbone-lr)")
+    ap.add_argument("--backbone-lr", type=float, default=None, help="lower learning rate for the pretrained encoder")
     ap.add_argument("--weight-decay", type=float, default=1e-4)
+    ap.add_argument("--dropout", type=float, default=0.3, help="dropout before the head")
+    ap.add_argument("--label-smoothing", type=float, default=0.0)
+    ap.add_argument("--aug", default="light", choices=["light", "strong"])
+    ap.add_argument("--fold", type=int, default=-1, help="-1: the fixed train/val split; 0..n-1: that CV fold is val")
+    ap.add_argument("--n-folds", type=int, default=5)
     ap.add_argument("--warmup-epochs", type=float, default=1.0)
     ap.add_argument("--patience", type=int, default=5, help="stop after this many epochs without a better val AUC")
     ap.add_argument("--workers", type=int, default=2)
@@ -84,11 +91,20 @@ def main(argv=None):
     print(f"device {device} | data {root} | out {out}")
 
     df = read_split(root, args.stage, args.limit, args.seed)
-    train_df, val_df = df[df["split"] == "train"], df[df["split"] == "val"]
+    if args.fold < 0:
+        train_df, val_df = df[df["split"] == "train"], df[df["split"] == "val"]
+    else:
+        # cross-validation: train + val patients are cut into n folds; this fold is val, the rest is train.
+        # The test patients are not in any fold.
+        pool = df[df["split"].isin(["train", "val"])].copy()
+        pool["fold"] = pool["patient_id"].map(make_folds(pool, args.n_folds, args.seed))
+        train_df, val_df = pool[pool["fold"] != args.fold], pool[pool["fold"] == args.fold]
+        pool[["patient_id", "side", "split", "fold", "label"]].to_csv(out / "folds.csv", index=False)
+        print(f"fold {args.fold} of {args.n_folds}")
     print(f"train {len(train_df)} breasts ({int(train_df['label'].sum())} malignant) | "
           f"val {len(val_df)} ({int(val_df['label'].sum())} malignant) | test not loaded")
 
-    train_ds = make_dataset(train_df, root, args.img_size, train=True, workers=args.workers)
+    train_ds = make_dataset(train_df, root, args.img_size, train=True, workers=args.workers, aug=args.aug)
     val_ds = make_dataset(val_df, root, args.img_size, train=False, workers=args.workers)
     train_dl = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=args.workers,
                           drop_last=len(train_ds) > args.batch_size, pin_memory=device.type == "cuda")
@@ -99,10 +115,17 @@ def main(argv=None):
     counts = np.bincount(train_df["label"], minlength=2)
     class_w = torch.tensor(len(train_df) / (2 * counts), dtype=torch.float32)
     print(f"class weights: benign {class_w[0]:.3f}, malignant {class_w[1]:.3f}")
-    loss_fn = nn.CrossEntropyLoss(weight=class_w.to(device))
+    # label smoothing: the target is 0.95 / 0.05 instead of 1 / 0 (with 0.1), so the model is not pushed to be
+    # 100% certain; this limits overfitting
+    loss_fn = nn.CrossEntropyLoss(weight=class_w.to(device), label_smoothing=args.label_smoothing)
 
-    model = DualViewNet(args.backbone, pretrained=not args.no_pretrained).to(device)
-    opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    model = DualViewNet(args.backbone, pretrained=not args.no_pretrained, dropout=args.dropout).to(device)
+    # two learning rates: the pretrained encoder changes slowly, the new layers (view attention, age, head) faster
+    encoder = list(model.encoder.parameters())
+    ids = {id(p) for p in encoder}
+    rest = [p for p in model.parameters() if id(p) not in ids]
+    opt = torch.optim.AdamW([{"params": encoder, "lr": args.backbone_lr or args.lr},
+                             {"params": rest, "lr": args.lr}], weight_decay=args.weight_decay)
     steps = args.epochs * len(train_dl)
     warm = max(1, int(args.warmup_epochs * len(train_dl)))
     # learning rate: rises linearly for `warm` steps, then follows a cosine curve down to zero
@@ -134,7 +157,7 @@ def main(argv=None):
         val_loss = float(loss_fn.cpu()(torch.stack([torch.log(1 - p), torch.log(p)], 1).float(), y_val))
         loss_fn.to(device)
         row = {"epoch": epoch, "train_loss": total / max(n, 1), "val_loss": val_loss, "val_auc": val_auc,
-               "lr": opt.param_groups[0]["lr"], "minutes": (time.time() - t) / 60}
+               "lr": opt.param_groups[-1]["lr"], "minutes": (time.time() - t) / 60}
         log.append(row)
         print(f"epoch {epoch:2d} | train loss {row['train_loss']:.4f} | val loss {val_loss:.4f} | "
               f"val AUC {val_auc:.4f} | {row['minutes']:.1f} min", flush=True)
@@ -156,7 +179,8 @@ def main(argv=None):
     val = val.merge(val_df[["patient_id", "side", "t_class", "dense"]], on=["patient_id", "side"])
     thr = youden_threshold(val) if val["label"].nunique() == 2 else 0.5
     val.assign(split="val").to_csv(out / "val_predictions.csv", index=False)
-    metrics = {"split": "val", "best_epoch": best_epoch, "epochs_run": len(log),
+    metrics = {"split": "val" if args.fold < 0 else f"cv fold {args.fold} of {args.n_folds}",
+               "best_epoch": best_epoch, "epochs_run": len(log),
                "chosen_threshold": thr, "threshold_rule": "Youden J (max sensitivity + specificity - 1) on val",
                "mean_view_weight_cc": float(val["w_cc"].mean()), "mean_view_weight_mlo": float(val["w_mlo"].mean()),
                # second operating point, also from val: keep at least 90% of the cancers flagged
