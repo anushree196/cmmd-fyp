@@ -3,7 +3,17 @@
 Goal: `radiomics_features.csv`, one row per Stage 2 MLO image, top-20 selected features.
 
 Why Kaggle and not the laptop: pyradiomics is a compiled package that often fails to install on Windows.
-Kaggle is Linux and installs it cleanly. This step needs no GPU — use a CPU notebook and save GPU hours.
+This step needs no GPU — use a CPU notebook and save GPU hours.
+
+**Install route (tested 2026-10-23, `notebooks/01_env`, `reports/06_kaggle_env.json`):** Kaggle runs Python
+3.13.15. `pip install pyradiomics` from PyPI **fails** there (the wheel build errors). Installing from the
+GitHub source **works** and extracts features correctly (67 features on a test circle; perimeter 263,
+sphericity 0.95). Use exactly this commit so the features never change between runs (notebook Internet ON):
+
+    pip install "git+https://github.com/AIM-Harvard/pyradiomics.git@8ed579383"
+
+Fallback if that ever stops working: scikit-image (0.25.2 is preinstalled on Kaggle) — GLCM texture with
+`skimage.feature.graycomatrix` / `graycoprops` and shape with `skimage.measure.regionprops`.
 
 ## Steps
 1. `scripts/07_radiomics.py`: for each Stage 2 image, load the PNG + its mask (from task 03), crop to the mask

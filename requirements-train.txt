@@ -7,5 +7,5 @@ pyyaml
 tqdm
 grad-cam
 shap
-pyradiomics
+pyradiomics @ git+https://github.com/AIM-Harvard/pyradiomics.git@8ed579383  # PyPI build fails on Python 3.13 (task 06)
 SimpleITK

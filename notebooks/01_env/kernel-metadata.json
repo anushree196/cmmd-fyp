@@ -1,0 +1,13 @@
+{
+  "id": "honeyyy09/cmmd-01-env",
+  "title": "cmmd-01-env",
+  "code_file": "cmmd_01_env.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "false",
+  "enable_internet": "true",
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": []
+}
