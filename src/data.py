@@ -64,8 +64,14 @@ def augmentations(size, strength="light"):
     Each view gets its own random values (the CC and MLO are different pictures).
 
     light  = Stage 1 v1 (task 06): rotation up to ~10 degrees, +-10% size, +-20 px shift, mild contrast.
-    strong = Stage 1 v2 recipe search: random resized crop keeping 80-100% of the area, rotation up to
-             +-15 degrees, stronger contrast, and brightness changes.
+    strong = Stage 1 v2: random zoom (area 80-125%), rotation up to +-15 degrees, shift up to 4%, stronger
+             contrast, and brightness changes.
+
+    Why a symmetric zoom and not a "random resized crop 80-100%": a crop that is stretched back to full size
+    only ever ZOOMS IN, so every training image was on average ~6% larger (and slightly stretched) compared
+    with the validation images, which are never cropped. That systematic size difference broke validation
+    (val loss 2.45 vs 0.66 in a 1-epoch test, worse still with MONAI's default "area" resizing, which leaves
+    a blocky texture). Zooming in AND out by the same amount keeps train and val on the same scale on average.
     """
     out = []
     for v in VIEWS:
@@ -78,11 +84,13 @@ def augmentations(size, strength="light"):
             ]
         else:
             out += [
-                # random resized crop: each side keeps 89.4-100% (area 80-100%), then back to size x size
-                T.RandScaleCropd(keys=v, roi_scale=0.894, max_roi_scale=1.0, random_size=True),
-                T.Resized(keys=v, spatial_size=(size, size)),
+                # zoom: ONE factor for both axes (side x0.894-1.118, area 80-125%), smooth interpolation,
+                # image kept at size x size (centre crop when zooming in, black border when zooming out)
+                T.RandZoomd(keys=v, prob=0.8, min_zoom=0.894, max_zoom=1.118, mode="bilinear",
+                            padding_mode="constant", keep_size=True),
+                # rotation up to +-15 degrees and a shift of up to 4% of the image size
                 T.RandAffined(keys=v, prob=0.7, rotate_range=0.26, translate_range=(0.04 * size, 0.04 * size),
-                              padding_mode="zeros"),        # rotation up to +-15 degrees, shift up to 4%
+                              mode="bilinear", padding_mode="zeros"),
                 T.RandAdjustContrastd(keys=v, prob=0.5, gamma=(0.7, 1.4)),   # contrast (gamma curve)
                 T.RandScaleIntensityd(keys=v, prob=0.5, factors=0.15),      # contrast (x 0.85-1.15)
                 T.RandShiftIntensityd(keys=v, prob=0.5, offsets=0.08),      # brightness (+-0.08)
