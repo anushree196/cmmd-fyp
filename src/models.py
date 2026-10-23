@@ -30,9 +30,12 @@ class DualViewNet(nn.Module):
     def forward(self, cc, mlo, clin):
         b = cc.shape[0]
         x = (torch.cat([cc, mlo]) - GREY_MEAN) / GREY_STD  # both views through the encoder in one pass
-        feats = self.encoder(x)
-        views = torch.stack([feats[:b], feats[b:]], dim=1)            # (batch, 2 views, d)
-        weights = torch.softmax(self.view_score(views).squeeze(-1), dim=1)  # (batch, 2), rows sum to 1
-        fused = (weights.unsqueeze(-1) * views).sum(dim=1)             # (batch, d)
-        logits = self.head(torch.cat([fused, self.clinical(clin)], dim=1))
+        feats = self.encoder(x).float()
+        # The small layers after the encoder always run in full 32-bit precision, even during mixed-precision
+        # training: in 16-bit, very large values overflow to infinity (task 06 v2 runs crashed with NaN).
+        with torch.autocast(device_type=feats.device.type, enabled=False):
+            views = torch.stack([feats[:b], feats[b:]], dim=1)            # (batch, 2 views, d)
+            weights = torch.softmax(self.view_score(views).squeeze(-1), dim=1)  # (batch, 2), rows sum to 1
+            fused = (weights.unsqueeze(-1) * views).sum(dim=1)             # (batch, d)
+            logits = self.head(torch.cat([fused, self.clinical(clin.float())], dim=1))
         return logits, weights

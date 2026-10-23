@@ -68,8 +68,11 @@ def predict(model, loader, device):
     model.eval()
     rows = []
     for batch in loader:
+        inputs = (batch["cc"].to(device), batch["mlo"].to(device), batch["clin"].to(device))
         with torch.autocast(device.type, enabled=device.type == "cuda"):
-            logits, w = model(batch["cc"].to(device), batch["mlo"].to(device), batch["clin"].to(device))
+            logits, w = model(*inputs)
+        if not torch.isfinite(logits).all():  # 16-bit overflow: redo this batch in full precision
+            logits, w = model(*inputs)
         prob = torch.softmax(logits.float(), dim=1)[:, 1].cpu().numpy()
         w = w.float().cpu().numpy()
         for i in range(len(prob)):
@@ -137,12 +140,23 @@ def main(argv=None):
     for epoch in range(1, args.epochs + 1):
         t = time.time()
         model.train()
-        total, n = 0.0, 0
+        total, n, skipped = 0.0, 0, 0
         for batch in train_dl:
             y = batch["label"].to(device)
+            # Bad-step guard: remember the batch-norm running statistics before the forward pass. If the loss
+            # is not a finite number (a 16-bit overflow), restore them and skip this step, so one bad batch
+            # cannot turn the whole model into NaN.
+            bn_before = [b.detach().clone() for b in model.buffers()]
             with torch.autocast(device.type, enabled=device.type == "cuda"):
                 logits, _ = model(batch["cc"].to(device), batch["mlo"].to(device), batch["clin"].to(device))
                 loss = loss_fn(logits.float(), y)
+            if not torch.isfinite(loss):
+                with torch.no_grad():
+                    for b, saved in zip(model.buffers(), bn_before):
+                        b.copy_(saved)
+                skipped += 1
+                sched.step()
+                continue
             opt.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
             scaler.step(opt)
@@ -151,16 +165,20 @@ def main(argv=None):
             total += loss.item() * len(y)
             n += len(y)
         val = predict(model, val_dl, device)
-        val_auc = auc(val) if val["label"].nunique() == 2 else float("nan")
+        finite = bool(np.isfinite(val["prob"]).all())
+        val_auc = auc(val) if val["label"].nunique() == 2 and finite else float("nan")
         p = torch.tensor(val["prob"].values).clamp(1e-6, 1 - 1e-6)
         y_val = torch.tensor(val["label"].values)
         val_loss = float(loss_fn.cpu()(torch.stack([torch.log(1 - p), torch.log(p)], 1).float(), y_val))
         loss_fn.to(device)
         row = {"epoch": epoch, "train_loss": total / max(n, 1), "val_loss": val_loss, "val_auc": val_auc,
-               "lr": opt.param_groups[-1]["lr"], "minutes": (time.time() - t) / 60}
+               "lr": opt.param_groups[-1]["lr"], "minutes": (time.time() - t) / 60,
+               "skipped_steps": skipped, "grad_scale": scaler.get_scale() if scaler.is_enabled() else None}
         log.append(row)
         print(f"epoch {epoch:2d} | train loss {row['train_loss']:.4f} | val loss {val_loss:.4f} | "
-              f"val AUC {val_auc:.4f} | {row['minutes']:.1f} min", flush=True)
+              f"val AUC {val_auc:.4f} | skipped steps {skipped} | {row['minutes']:.1f} min", flush=True)
+        if not finite:
+            raise SystemExit("validation predictions are not finite even after the guards: stopping")
         if val_auc > best_auc:  # model selection uses VALIDATION AUC only
             best_auc, best_epoch, bad = val_auc, epoch, 0
             torch.save(model.state_dict(), out / "best.pt")
