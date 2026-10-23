@@ -1,0 +1,619 @@
+{
+  "split": "test",
+  "scored_at": "2026-10-23 15:36:39",
+  "forced_rerun": false,
+  "threshold_from_val": 0.7815808057785034,
+  "n_breasts": 279,
+  "n_patients": 265,
+  "n_malignant": 197,
+  "n_benign": 82,
+  "threshold": 0.7815808057785034,
+  "auc": 0.7670236473938343,
+  "auc_ci95": [
+    0.7071040859658105,
+    0.8204369879485567
+  ],
+  "auc_boot_draws": 2000,
+  "sensitivity": 0.5431472081218274,
+  "sensitivity_ci95": [
+    0.47593582887700536,
+    0.6086956521739131
+  ],
+  "specificity": 0.8414634146341463,
+  "specificity_ci95": [
+    0.7613636363636364,
+    0.9176470588235294
+  ],
+  "confusion": {
+    "true_benign": 69,
+    "false_malignant": 13,
+    "missed_cancer": 90,
+    "found_cancer": 107
+  },
+  "subgroups": {
+    "invisible_cancers_vs_all_benign": {
+      "n_breasts": 102,
+      "n_patients": 94,
+      "n_malignant": 20,
+      "n_benign": 82,
+      "threshold": 0.7815808057785034,
+      "auc": 0.6064024390243903,
+      "auc_ci95": [
+        0.4675295491025828,
+        0.7386742758270535
+      ],
+      "auc_boot_draws": 2000,
+      "sensitivity": 0.15,
+      "sensitivity_ci95": [
+        0.0,
+        0.3333333333333333
+      ],
+      "specificity": 0.8414634146341463,
+      "specificity_ci95": [
+        0.7618912337662337,
+        0.9125270061728393
+      ],
+      "confusion": {
+        "true_benign": 69,
+        "false_malignant": 13,
+        "missed_cancer": 17,
+        "found_cancer": 3
+      }
+    },
+    "visible_cancers_vs_all_benign": {
+      "n_breasts": 259,
+      "n_patients": 245,
+      "n_malignant": 177,
+      "n_benign": 82,
+      "threshold": 0.7815808057785034,
+      "auc": 0.7851729364751274,
+      "auc_ci95": [
+        0.7289970125070618,
+        0.8381548734588706
+      ],
+      "auc_boot_draws": 2000,
+      "sensitivity": 0.5875706214689266,
+      "sensitivity_ci95": [
+        0.5139626223031575,
+        0.6589690656164644
+      ],
+      "specificity": 0.8414634146341463,
+      "specificity_ci95": [
+        0.7590361445783133,
+        0.9166666666666666
+      ],
+      "confusion": {
+        "true_benign": 69,
+        "false_malignant": 13,
+        "missed_cancer": 73,
+        "found_cancer": 104
+      }
+    },
+    "dense_breasts": {
+      "n_breasts": 234,
+      "n_patients": 223,
+      "n_malignant": 165,
+      "n_benign": 69,
+      "threshold": 0.7815808057785034,
+      "auc": 0.7559508124725515,
+      "auc_ci95": [
+        0.6885697965205189,
+        0.8184147946084724
+      ],
+      "auc_boot_draws": 2000,
+      "sensitivity": 0.47878787878787876,
+      "sensitivity_ci95": [
+        0.3987341772151899,
+        0.5526393188854489
+      ],
+      "specificity": 0.8840579710144928,
+      "specificity_ci95": [
+        0.803030303030303,
+        0.9545624151967435
+      ],
+      "confusion": {
+        "true_benign": 61,
+        "false_malignant": 8,
+        "missed_cancer": 86,
+        "found_cancer": 79
+      }
+    },
+    "non_dense_breasts": {
+      "n_breasts": 45,
+      "n_patients": 42,
+      "n_malignant": 32,
+      "n_benign": 13,
+      "threshold": 0.7815808057785034,
+      "auc": 0.8725961538461537,
+      "auc_ci95": [
+        0.7343687996031746,
+        0.967048319327731
+      ],
+      "auc_boot_draws": 2000,
+      "sensitivity": 0.875,
+      "sensitivity_ci95": [
+        0.7419354838709677,
+        0.9696969696969697
+      ],
+      "specificity": 0.6153846153846154,
+      "specificity_ci95": [
+        0.3333333333333333,
+        0.8571428571428571
+      ],
+      "confusion": {
+        "true_benign": 8,
+        "false_malignant": 5,
+        "missed_cancer": 4,
+        "found_cancer": 28
+      }
+    },
+    "benign_no_visible_lesion": {
+      "n_breasts": 50,
+      "n_patients": 49,
+      "n_malignant": 0,
+      "n_benign": 50,
+      "threshold": 0.7815808057785034,
+      "specificity": 0.84,
+      "specificity_ci95": [
+        0.74,
+        0.9387755102040817
+      ],
+      "confusion": {
+        "true_benign": 42,
+        "false_malignant": 8,
+        "missed_cancer": 0,
+        "found_cancer": 0
+      }
+    },
+    "benign_visible_lesion": {
+      "n_breasts": 32,
+      "n_patients": 30,
+      "n_malignant": 0,
+      "n_benign": 32,
+      "threshold": 0.7815808057785034,
+      "specificity": 0.84375,
+      "specificity_ci95": [
+        0.7,
+        0.967741935483871
+      ],
+      "confusion": {
+        "true_benign": 27,
+        "false_malignant": 5,
+        "missed_cancer": 0,
+        "found_cancer": 0
+      }
+    }
+  },
+  "operating_points": {
+    "youden": {
+      "threshold": 0.7815808057785034,
+      "val": {
+        "n_breasts": 278,
+        "n_patients": 264,
+        "n_malignant": 196,
+        "n_benign": 82,
+        "threshold": 0.7815808057785034,
+        "auc": 0.8328148332503733,
+        "auc_ci95": [
+          0.7863017621408623,
+          0.8755643900129828
+        ],
+        "auc_boot_draws": 2000,
+        "sensitivity": 0.5459183673469388,
+        "sensitivity_ci95": [
+          0.4728144800087393,
+          0.6190536620739666
+        ],
+        "specificity": 0.975609756097561,
+        "specificity_ci95": [
+          0.9367088607594937,
+          1.0
+        ],
+        "confusion": {
+          "true_benign": 80,
+          "false_malignant": 2,
+          "missed_cancer": 89,
+          "found_cancer": 107
+        }
+      },
+      "test": {
+        "n_breasts": 279,
+        "n_patients": 265,
+        "n_malignant": 197,
+        "n_benign": 82,
+        "threshold": 0.7815808057785034,
+        "auc": 0.7670236473938343,
+        "auc_ci95": [
+          0.7071040859658105,
+          0.8204369879485567
+        ],
+        "auc_boot_draws": 2000,
+        "sensitivity": 0.5431472081218274,
+        "sensitivity_ci95": [
+          0.47593582887700536,
+          0.6086956521739131
+        ],
+        "specificity": 0.8414634146341463,
+        "specificity_ci95": [
+          0.7613636363636364,
+          0.9176470588235294
+        ],
+        "confusion": {
+          "true_benign": 69,
+          "false_malignant": 13,
+          "missed_cancer": 90,
+          "found_cancer": 107
+        }
+      },
+      "test_subgroups": {
+        "invisible_cancers_vs_all_benign": {
+          "n_breasts": 102,
+          "n_patients": 94,
+          "n_malignant": 20,
+          "n_benign": 82,
+          "threshold": 0.7815808057785034,
+          "auc": 0.6064024390243903,
+          "auc_ci95": [
+            0.4675295491025828,
+            0.7386742758270535
+          ],
+          "auc_boot_draws": 2000,
+          "sensitivity": 0.15,
+          "sensitivity_ci95": [
+            0.0,
+            0.3333333333333333
+          ],
+          "specificity": 0.8414634146341463,
+          "specificity_ci95": [
+            0.7618912337662337,
+            0.9125270061728393
+          ],
+          "confusion": {
+            "true_benign": 69,
+            "false_malignant": 13,
+            "missed_cancer": 17,
+            "found_cancer": 3
+          }
+        },
+        "visible_cancers_vs_all_benign": {
+          "n_breasts": 259,
+          "n_patients": 245,
+          "n_malignant": 177,
+          "n_benign": 82,
+          "threshold": 0.7815808057785034,
+          "auc": 0.7851729364751274,
+          "auc_ci95": [
+            0.7289970125070618,
+            0.8381548734588706
+          ],
+          "auc_boot_draws": 2000,
+          "sensitivity": 0.5875706214689266,
+          "sensitivity_ci95": [
+            0.5139626223031575,
+            0.6589690656164644
+          ],
+          "specificity": 0.8414634146341463,
+          "specificity_ci95": [
+            0.7590361445783133,
+            0.9166666666666666
+          ],
+          "confusion": {
+            "true_benign": 69,
+            "false_malignant": 13,
+            "missed_cancer": 73,
+            "found_cancer": 104
+          }
+        },
+        "dense_breasts": {
+          "n_breasts": 234,
+          "n_patients": 223,
+          "n_malignant": 165,
+          "n_benign": 69,
+          "threshold": 0.7815808057785034,
+          "auc": 0.7559508124725515,
+          "auc_ci95": [
+            0.6885697965205189,
+            0.8184147946084724
+          ],
+          "auc_boot_draws": 2000,
+          "sensitivity": 0.47878787878787876,
+          "sensitivity_ci95": [
+            0.3987341772151899,
+            0.5526393188854489
+          ],
+          "specificity": 0.8840579710144928,
+          "specificity_ci95": [
+            0.803030303030303,
+            0.9545624151967435
+          ],
+          "confusion": {
+            "true_benign": 61,
+            "false_malignant": 8,
+            "missed_cancer": 86,
+            "found_cancer": 79
+          }
+        },
+        "non_dense_breasts": {
+          "n_breasts": 45,
+          "n_patients": 42,
+          "n_malignant": 32,
+          "n_benign": 13,
+          "threshold": 0.7815808057785034,
+          "auc": 0.8725961538461537,
+          "auc_ci95": [
+            0.7343687996031746,
+            0.967048319327731
+          ],
+          "auc_boot_draws": 2000,
+          "sensitivity": 0.875,
+          "sensitivity_ci95": [
+            0.7419354838709677,
+            0.9696969696969697
+          ],
+          "specificity": 0.6153846153846154,
+          "specificity_ci95": [
+            0.3333333333333333,
+            0.8571428571428571
+          ],
+          "confusion": {
+            "true_benign": 8,
+            "false_malignant": 5,
+            "missed_cancer": 4,
+            "found_cancer": 28
+          }
+        },
+        "benign_no_visible_lesion": {
+          "n_breasts": 50,
+          "n_patients": 49,
+          "n_malignant": 0,
+          "n_benign": 50,
+          "threshold": 0.7815808057785034,
+          "specificity": 0.84,
+          "specificity_ci95": [
+            0.74,
+            0.9387755102040817
+          ],
+          "confusion": {
+            "true_benign": 42,
+            "false_malignant": 8,
+            "missed_cancer": 0,
+            "found_cancer": 0
+          }
+        },
+        "benign_visible_lesion": {
+          "n_breasts": 32,
+          "n_patients": 30,
+          "n_malignant": 0,
+          "n_benign": 32,
+          "threshold": 0.7815808057785034,
+          "specificity": 0.84375,
+          "specificity_ci95": [
+            0.7,
+            0.967741935483871
+          ],
+          "confusion": {
+            "true_benign": 27,
+            "false_malignant": 5,
+            "missed_cancer": 0,
+            "found_cancer": 0
+          }
+        }
+      }
+    },
+    "val_sens90": {
+      "threshold": 0.1711997240781784,
+      "val": {
+        "n_breasts": 278,
+        "n_patients": 264,
+        "n_malignant": 196,
+        "n_benign": 82,
+        "threshold": 0.1711997240781784,
+        "auc": 0.8328148332503733,
+        "auc_ci95": [
+          0.7863017621408623,
+          0.8755643900129828
+        ],
+        "auc_boot_draws": 2000,
+        "sensitivity": 0.9030612244897959,
+        "sensitivity_ci95": [
+          0.8599975845410628,
+          0.9427083333333334
+        ],
+        "specificity": 0.5,
+        "specificity_ci95": [
+          0.39080459770114945,
+          0.5972222222222222
+        ],
+        "confusion": {
+          "true_benign": 41,
+          "false_malignant": 41,
+          "missed_cancer": 19,
+          "found_cancer": 177
+        }
+      },
+      "test": {
+        "n_breasts": 279,
+        "n_patients": 265,
+        "n_malignant": 197,
+        "n_benign": 82,
+        "threshold": 0.1711997240781784,
+        "auc": 0.7670236473938343,
+        "auc_ci95": [
+          0.7071040859658105,
+          0.8204369879485567
+        ],
+        "auc_boot_draws": 2000,
+        "sensitivity": 0.8426395939086294,
+        "sensitivity_ci95": [
+          0.7905695828407364,
+          0.8905513416523938
+        ],
+        "specificity": 0.43902439024390244,
+        "specificity_ci95": [
+          0.3332352941176471,
+          0.5494642857142857
+        ],
+        "confusion": {
+          "true_benign": 36,
+          "false_malignant": 46,
+          "missed_cancer": 31,
+          "found_cancer": 166
+        }
+      },
+      "test_subgroups": {
+        "invisible_cancers_vs_all_benign": {
+          "n_breasts": 102,
+          "n_patients": 94,
+          "n_malignant": 20,
+          "n_benign": 82,
+          "threshold": 0.1711997240781784,
+          "auc": 0.6064024390243903,
+          "auc_ci95": [
+            0.4675295491025828,
+            0.7386742758270535
+          ],
+          "auc_boot_draws": 2000,
+          "sensitivity": 0.7,
+          "sensitivity_ci95": [
+            0.47619047619047616,
+            0.9
+          ],
+          "specificity": 0.43902439024390244,
+          "specificity_ci95": [
+            0.3332352941176471,
+            0.5432372245663383
+          ],
+          "confusion": {
+            "true_benign": 36,
+            "false_malignant": 46,
+            "missed_cancer": 6,
+            "found_cancer": 14
+          }
+        },
+        "visible_cancers_vs_all_benign": {
+          "n_breasts": 259,
+          "n_patients": 245,
+          "n_malignant": 177,
+          "n_benign": 82,
+          "threshold": 0.1711997240781784,
+          "auc": 0.7851729364751274,
+          "auc_ci95": [
+            0.7289970125070618,
+            0.8381548734588706
+          ],
+          "auc_boot_draws": 2000,
+          "sensitivity": 0.8587570621468926,
+          "sensitivity_ci95": [
+            0.8053886134655366,
+            0.9075144508670521
+          ],
+          "specificity": 0.43902439024390244,
+          "specificity_ci95": [
+            0.3333333333333333,
+            0.5416666666666666
+          ],
+          "confusion": {
+            "true_benign": 36,
+            "false_malignant": 46,
+            "missed_cancer": 25,
+            "found_cancer": 152
+          }
+        },
+        "dense_breasts": {
+          "n_breasts": 234,
+          "n_patients": 223,
+          "n_malignant": 165,
+          "n_benign": 69,
+          "threshold": 0.1711997240781784,
+          "auc": 0.7559508124725515,
+          "auc_ci95": [
+            0.6885697965205189,
+            0.8184147946084724
+          ],
+          "auc_boot_draws": 2000,
+          "sensitivity": 0.8121212121212121,
+          "sensitivity_ci95": [
+            0.7469135802469136,
+            0.8705882352941177
+          ],
+          "specificity": 0.463768115942029,
+          "specificity_ci95": [
+            0.3392713133640553,
+            0.5849171652093879
+          ],
+          "confusion": {
+            "true_benign": 32,
+            "false_malignant": 37,
+            "missed_cancer": 31,
+            "found_cancer": 134
+          }
+        },
+        "non_dense_breasts": {
+          "n_breasts": 45,
+          "n_patients": 42,
+          "n_malignant": 32,
+          "n_benign": 13,
+          "threshold": 0.1711997240781784,
+          "auc": 0.8725961538461537,
+          "auc_ci95": [
+            0.7343687996031746,
+            0.967048319327731
+          ],
+          "auc_boot_draws": 2000,
+          "sensitivity": 1.0,
+          "sensitivity_ci95": [
+            1.0,
+            1.0
+          ],
+          "specificity": 0.3076923076923077,
+          "specificity_ci95": [
+            0.07142857142857142,
+            0.5555555555555556
+          ],
+          "confusion": {
+            "true_benign": 4,
+            "false_malignant": 9,
+            "missed_cancer": 0,
+            "found_cancer": 32
+          }
+        },
+        "benign_no_visible_lesion": {
+          "n_breasts": 50,
+          "n_patients": 49,
+          "n_malignant": 0,
+          "n_benign": 50,
+          "threshold": 0.1711997240781784,
+          "specificity": 0.38,
+          "specificity_ci95": [
+            0.24489795918367346,
+            0.52
+          ],
+          "confusion": {
+            "true_benign": 19,
+            "false_malignant": 31,
+            "missed_cancer": 0,
+            "found_cancer": 0
+          }
+        },
+        "benign_visible_lesion": {
+          "n_breasts": 32,
+          "n_patients": 30,
+          "n_malignant": 0,
+          "n_benign": 32,
+          "threshold": 0.1711997240781784,
+          "specificity": 0.53125,
+          "specificity_ci95": [
+            0.3548387096774194,
+            0.7059772296015175
+          ],
+          "confusion": {
+            "true_benign": 17,
+            "false_malignant": 15,
+            "missed_cancer": 0,
+            "found_cancer": 0
+          }
+        }
+      }
+    }
+  }
+}

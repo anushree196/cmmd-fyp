@@ -327,3 +327,66 @@
     the dataset public.
   - The dataset licence field is set to "unknown"; set the real CMMD / TOMPEI licence before any public release.
 - Next: Task 06 (Stage 1 training code, tested locally on CPU, then run on Kaggle GPU).
+
+## 2026-10-23 — Task 06: Stage 1 training (benign vs malignant)
+- Anu approved task 05, including the median fill for box-only breasts in task 07.
+- Kaggle environment re-checked first (`notebooks/01_env`, CPU, Internet ON → `reports/06_kaggle_env.json`):
+  Python 3.13.15, torch 2.11.0 (unchanged). monai 1.6.1 and grad-cam install fine. **pyradiomics from PyPI
+  fails** (wheel build error on Python 3.13); **from its GitHub source it installs and works** (67 features on a
+  test circle, perimeter 263, sphericity 0.95). Pinned to commit `8ed579383` in `requirements-train.txt` and
+  `tasks/07_radiomics.md`. The scikit-image fallback is written down there but not needed.
+- Code written (`src/`): `data.py` (CC + MLO PNGs scaled to 512 px tall with shape kept, padded right; MONAI
+  CacheDataset; train-only augmentation: rotation up to ~10°, ±10% scale, ±20 px shift, contrast and intensity
+  changes, no flips), `models.py` (EfficientNet-B3 shared by both views, single grey input channel, View
+  Attention, age through a small MLP, 2-class head), `metrics.py` (AUC, sensitivity, specificity, thresholds,
+  bootstrap CIs resampling **patients**, 2,000 draws), `train.py` (train + val only), `evaluate.py` (test only,
+  refuses to score a run twice). `scripts/make_kaggle_notebook.py` turns a `.py` file into the notebook.
+  Inputs: both views + age only (as Anu specified; lesion type is not used).
+- Local CPU test (128 px, 32 breasts per split, 2 epochs): runs end to end; evaluate refuses a second test run.
+- Training (`notebooks/02_stage1_train` → Kaggle `cmmd-02-stage1-train`, Tesla T4, 512 px, batch 8, AdamW
+  lr 1e-4, weight decay 1e-4, 1 warm-up epoch then cosine, mixed precision, early stopping patience 5 on val
+  AUC). Class weights from train: benign 1.687, malignant 0.711.
+  - Ran 12 of 20 epochs (early stop), about 1 min per epoch after a 7.7 min first epoch (image caching).
+    **Best epoch 7, val AUC 0.833 (95% CI 0.786–0.876).**
+  - Overfits early: train loss 0.67 → 0.07 by epoch 12, val loss lowest at epoch 3 (0.511) and 7 (0.510), then
+    rising to 0.88. Early stopping on val AUC kept epoch 7.
+  - Learned view weights on val: CC 0.475, MLO 0.525 (the model uses both views almost equally).
+- Thresholds (both chosen on VALIDATION only; test never used for any choice):
+  - Youden J (the rule fixed in the code before any results): 0.782 → val sensitivity 54.6%, specificity 97.6%.
+  - Val sensitivity ≥ 90% (**added after seeing the val result**, before the test was scored, because Youden
+    gave a corner point that misses 45% of cancers): 0.171 → val sensitivity 90.3%, specificity 50.0%.
+- **Test, scored once** (`notebooks/03_stage1_test` → `cmmd-03-stage1-test`, 2026-10-23 15:36 UTC, not forced):
+  279 breasts, 265 patients, 197 malignant / 82 benign.
+  - **Test AUC 0.767 (95% CI 0.707–0.820).**
+  - At Youden 0.782: sensitivity 54.3% (47.6–60.9), specificity 84.1% (76.1–91.8);
+    found 107 / missed 90 cancers, 69 benign correct / 13 benign flagged.
+  - At val-sens-90 0.171: sensitivity 84.3% (79.1–89.1), specificity 43.9% (33.3–54.9);
+    found 166 / missed 31 cancers, 36 benign correct / 46 benign flagged.
+  - Subgroups (AUC with 95% CI; sensitivity at Youden / at val-sens-90):
+    - "Invisible" cancers (20) vs all 82 benign: AUC 0.606 (0.468–0.739); sensitivity 15.0% / 70.0%.
+    - Visible cancers (177) vs all 82 benign: AUC 0.785 (0.729–0.838); sensitivity 58.8% / 85.9%.
+    - Dense breasts (234; 165 mal, 69 ben): AUC 0.756 (0.689–0.818).
+    - Non-dense breasts (45; 32 mal, 13 ben): AUC 0.873 (0.734–0.967).
+    - Specificity on benign with no visible lesion (50): 84.0% / 38.0%; benign with a visible lesion (32):
+      84.4% / 53.1%.
+- Files kept in git: `reports/stage1/` (metrics_val.json, metrics_test.json, val and test probabilities as CSV,
+  training_log.csv, training_curves.png, run_config.json). Weights `best.pt` (42 MB) stay as the Kaggle output
+  of `cmmd-02-stage1-train`, not in git.
+- **GPU time: 33.7 min this task** (training 21.1 min + test scoring 12.6 min, both T4). Earlier GPU use:
+  `cmmd-00-check` under 1 min (task 05). The env check ran on CPU. Total so far about 0.58 GPU hours.
+- Surprises:
+  - Test AUC (0.767) is clearly below val AUC (0.833); the two CIs only just overlap. Part of the gap is
+    expected (the best of 12 epochs was picked on val, which flatters val), part is the small sets (82 benign
+    in each). The test number is the one to report.
+  - Youden's threshold transferred badly: val specificity 97.6% fell to 84.1% on test. The val-sens-90 threshold
+    held up better on sensitivity (90.3% → 84.3%).
+  - "Invisible" cancers are much harder (AUC 0.61, CI includes 0.5 territory near the bottom), and dense breasts
+    are harder than non-dense (0.76 vs 0.87), as expected; both subgroups are small, so the CIs are wide.
+  - Scoring took 12.6 min of a GPU session, mostly the CPU bootstrap. Evaluation notebooks should run with the
+    GPU off (or the bootstrap should be vectorised).
+  - On Windows the Kaggle CLI fails with a forward-slash folder (`-p data/kaggle_code`); use `data\kaggle_code`.
+  - pandas 3 drops the grouping columns inside `groupby().apply()`; `read_split` uses a plain loop instead.
+- This is the first Stage 1 model. Any later change to Stage 1 must be judged on val; scoring a new model on
+  test would be a second look at the test set and must be reported as such.
+- Next: Anu to decide whether to improve Stage 1 first (it overfits; stronger augmentation or regularisation,
+  judged on val) or to move on to task 07 (radiomics, CPU) and task 08.
