@@ -1,13 +1,6 @@
 # PROGRESS — project log
 
-Claude Code appends one entry per finished task. Newest at the bottom.
-Format:
 
-## YYYY-MM-DD — Task NN: title
-- Done: ...
-- Numbers: ...
-- Surprises: ...
-- Next: ...
 
 ---
 
