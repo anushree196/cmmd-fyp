@@ -59,7 +59,7 @@ class LoadPair:
         return item
 
 
-def augmentations(size, strength="light"):
+def augmentations(size, strength="light", keys=VIEWS):
     """Random changes for TRAINING images only. No flips: orientation was standardised in task 02.
     Each view gets its own random values (the CC and MLO are different pictures).
 
@@ -74,7 +74,7 @@ def augmentations(size, strength="light"):
     a blocky texture). Zooming in AND out by the same amount keeps train and val on the same scale on average.
     """
     out = []
-    for v in VIEWS:
+    for v in keys:  # each image key gets its own random values
         if strength == "light":
             out += [
                 T.RandAffined(keys=v, prob=0.7, rotate_range=0.17, scale_range=0.10, translate_range=(20, 20),

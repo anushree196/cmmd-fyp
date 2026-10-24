@@ -1,0 +1,13 @@
+{
+  "id": "honeyyy09/cmmd-09-s2-a",
+  "title": "cmmd-09-s2-a",
+  "code_file": "cmmd_09_s2_a.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "dataset_sources": ["honeyyy09/cmmd-png1024", "honeyyy09/cmmd-code", "honeyyy09/cmmd-features"],
+  "competition_sources": [],
+  "kernel_sources": []
+}
