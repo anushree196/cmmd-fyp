@@ -1,0 +1,11 @@
+{
+  "name": "E0-meta",
+  "seed": 42,
+  "split": "imagewise",
+  "use_image": false,
+  "use_meta": true,
+  "meta": "paper",
+  "workers": 4,
+  "pretrained": true,
+  "epochs": 10
+}

@@ -112,6 +112,13 @@ def main():
     say(f"| *paper (5-class model)* | | | | | *{PAPER['LumA']/100:.2f}* | *{PAPER['LumB']/100:.2f}* | *{PAPER['HER2']/100:.2f}* | *{PAPER['TN']/100:.2f}* |")
     say("")
     say("Test class sizes: LumA 21, LumB 51, HER2 19, TN 10 patients — per-class CIs are wide, TN especially.")
+    v_best = max((n for n in test["stage2"] if n != "E1-224"), key=lambda n: val_stats(n, ["auc_macro"])[0]["auc_macro"][0])
+    t_best = max((n for n in test["stage2"] if n != "E1-224"), key=lambda n: test["stage2"][n]["averaged"]["auc_macro"])
+    say("")
+    say(f"Reading: best on validation is {v_best}, best on test is {t_best}; the validation and test rankings do not "
+        "agree, and every E1–E6 test interval overlaps the others. On 101 test patients no single component is shown "
+        "to help or hurt. The paper's per-class numbers come from its 5-class model under the leaky protocol "
+        "(benign included as negatives), so they are not directly comparable with these 4-class AUCs.")
 
     # ---- 3. chained 5-class
     s1 = pd.read_csv("reports/stage1_v2/test_predictions.csv")
@@ -140,6 +147,11 @@ def main():
     say("|---|---|---|" + "---|" * 5)
     say(f"| **ours, chained (test)** | {ci(m5, 'auc_micro')} | {ci(m5, 'auc_macro')} | " + " | ".join(ci(m5, f"auc_{c}") for c in ["Benign"] + sub) + " |")
     say(f"| *paper (leaky protocol)* | *{PAPER['micro']/100:.3f}* | *≈{np.mean([PAPER[c] for c in cls])/100:.3f}* | " + " | ".join(f"*{PAPER[c]/100:.2f}*" for c in cls) + " |")
+    say("")
+    say("Caution: in this 5-class setting the 82 benign breasts are negatives for every subtype, and Stage 1 already "
+        "pushes most of them down, so the chained subtype AUCs are higher than the 4-class ones in section 2 (same "
+        "Stage 2 model). Compare like with like: section 2 against section 2, this table against the paper's "
+        "5-class numbers — which also benefit from the metadata leak (section 1).")
     five.to_csv(R / "test" / "chained_5class.csv", index=False)
     (R / "test" / "chained_5class_metrics.json").write_text(json.dumps(m5, indent=2))
     Path("reports/ablation_table.md").write_text("\n".join(L) + "\n", encoding="utf-8")

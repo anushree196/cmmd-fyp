@@ -1,0 +1,18 @@
+{
+  "exp": "E1",
+  "seed": 42,
+  "size": 224,
+  "epochs": 25,
+  "patience": 6,
+  "batch_size": 8,
+  "lr": 0.0003,
+  "backbone_lr": 0.0001,
+  "weight_decay": 0.01,
+  "label_smoothing": 0.1,
+  "dropout": 0.5,
+  "warmup_epochs": 1.0,
+  "views": "mlo",
+  "crop": false,
+  "radiomics": false,
+  "fusion": "concat"
+}

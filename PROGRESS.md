@@ -528,3 +528,60 @@
 - Uploaded: new versions of `honeyyy09/cmmd-features` and `honeyyy09/cmmd-code`.
 - GPU time: 0. Project total unchanged at about 7.0 GPU hours.
 - Next: wait for Anu's "go", then Task 08 (Stage 2 ablation E0–E6).
+
+## 2026-10-24 — Task 08: Stage 2 ablation E0–E6, the baseline re-run, and the one-time test scoring
+- Plan approved by Anu with decisions: E6 = E5 as a 5-fold CV ensemble; chained 5-class uses the soft rule
+  (P(subtype) = p(malignant) × Stage 2 probability; benign breasts without a mask get 1/4 per subtype); E1–E6 at
+  512 px plus an E1-224 bridge; the paper's per-class numbers from `docs/baseline_paper_notes.md` (Benign 100,
+  LumA 67, LumB 74, HER2 78, TN 78, images-only overall 61.3). Anu then redefined E0 as an exact copy of the
+  paper (one 5-class model on every labelled image) and added E0-images, E0-meta, E0-patient, and later
+  E0-paperdata. All models and settings fixed on validation; **test scored once for all experiments together**.
+- **Baseline code is public:** https://github.com/serag-ai/Multimodal-BC-Classifier (checked 2026-10-24;
+  notebooks uploaded 2026-04-13; no licence → read, not copied; cited in `README.md` and the report). What it shows:
+  - **Metadata leak:** "tumour class" is set from the image's folder — every benign image gets 0 ("None"), every
+    malignant one 1–3 — although CMMD gives benign breasts a real lesion type (in our 1,098 benign images: mass
+    812, both 160, calcification 126). The metadata therefore reveals the benign label.
+  - **88.87% is a micro-average** (Keras `AUC()` on one-hot labels). Model used = last of 10 epochs.
+  - Model: Xception (all but the last 20 Keras layers frozen) → GAP → Dense 512 → Dropout 0.3; metadata (age
+    binarised at 40, tumour class 0–3 as one number) → Dense 32 → Dropout 0.3; concat → 256 → 128 → 5. Adam 1e-3,
+    balanced class weights, batch 64, 10 epochs, LR halved on plateau. Re-implemented in `src/e0.py` (timm
+    `legacy_xception` = the same TF ImageNet weights; same frozen layers; whole frame rebuilt from our PNGs, un-mirrored,
+    squashed to 224).
+- **Eligible images** (`scripts/08_e0_eligibility.py` → `reports/08_e0_eligibility.md`): ours 2,590 (1,223 patients;
+  benign 1,098, LumA 300, LumB 750, HER2 270, TN 172). Labelling per patient instead gives 4,040 — 16 short of the
+  paper's 4,056 — so the paper very likely labelled per patient: 1,458 images of breasts with no labelled cancer
+  were trained and tested as subtypes. Their image-wise split also leaks: 198 of our 260 E0 test images have a
+  sibling image of the same patient in train. E0-paperdata split 2,908 / 727 / 405 (paper 2,920 / 730 / 406).
+- **Test, the leak ladder** (5 classes, average of 3 seeds, `reports/ablation_table.md` §1):
+  | run | micro AUC | macro AUC | Benign | LumA | LumB | HER2 | TN |
+  |---|---|---|---|---|---|---|---|
+  | paper (published) | 0.889 | ≈0.794 | 1.00 | 0.67 | 0.74 | 0.78 | 0.78 |
+  | E0-paperdata (their full protocol) | 0.859 | 0.770 | 1.000 | 0.714 | 0.755 | 0.735 | 0.646 |
+  | E0 (our correct labels) | 0.920 | 0.850 | 1.000 | 0.821 | 0.826 | 0.830 | 0.773 |
+  | E0-truemeta (real lesion types) | 0.685 | 0.632 | 0.738 | 0.618 | 0.514 | 0.713 | 0.577 |
+  | E0-patient (patient-wise split) | 0.904 | 0.810 | 1.000 | 0.728 | 0.795 | 0.807 | 0.721 |
+  Controls: E0-images micro 0.689 (paper images-only 0.613); **E0-meta (metadata only, no image) micro 0.902,
+  Benign 1.000** — the headline number does not need the mammogram; E0-meta-true micro 0.614.
+  We reproduce the paper's protocol (0.859 vs 0.889); removing the leak alone drops micro AUC to 0.685.
+- **Test, E1–E6** (4 subtypes, same 101 test patients, average of 3 seeds / 5 folds; macro AUC with 95% CI):
+  E1-224 0.502 (0.41–0.60), E1 0.551 (0.47–0.64), E2 0.586 (0.49–0.68), E3 0.590 (0.51–0.67), E4 0.618
+  (0.54–0.69), E5 0.644 (0.57–0.72), E6 0.587 (0.51–0.66). Validation (mean ± std over seeds): E1 0.611 ± 0.043,
+  E1-224 0.586 ± 0.014, E2 0.622 ± 0.013, E3 0.586 ± 0.011, E4 0.576 ± 0.017, E5 0.590 ± 0.002, E6 0.643 ± 0.034
+  (5 folds). Validation and test rankings disagree (best val E6, best test E5) and all test CIs overlap: **no single
+  component is shown to help** on 101 test patients. Per-class test AUC in `reports/ablation_table.md` §2.
+- **Test, chained Stage 1 v2 → E6, 5 classes** (82 benign + 101 subtyped breasts; 96 other Stage 1 test breasts
+  cannot get a 5-class label): micro 0.775 (0.72–0.82), macro 0.724 (0.67–0.77); Benign 0.822, LumA 0.707,
+  LumB 0.636, HER2 0.799, TN 0.658. These subtype AUCs include benign negatives and are not comparable with §2.
+- Surprises:
+  - E0 with our correct labels scores HIGHER than the paper's own labelling (micro 0.920 vs 0.859): per-patient
+    labels put 1,458 normal-looking breasts into subtype classes, which is label noise, not help.
+  - E0-patient barely drops (0.904): with the leak present the split hardly matters; the leak dominates.
+  - Stage 2 runs stopped early (best epochs mostly 1–6 for E3–E6): the subtype signal in these images is weak.
+  - Runs were much faster than estimated (4–9 min each, not 10–18).
+- Files: `reports/ablation_table.md`, `reports/08_e0_eligibility.md`, `reports/stage2/` (val metrics, logs and
+  predictions of every run; the one-time test predictions per experiment with every seed's and fold's
+  probabilities; chained 5-class predictions and metrics; E0 row tables; E6 folds), `README.md` (new).
+  Weights stay as Kaggle outputs of `cmmd-08-e0`, `cmmd-08-e0-paperdata`, `cmmd-09-s2-a`…`-e`.
+- **GPU time, task 08: 212.6 min = 3.5 h** (E0 family 41.9, E0-paperdata 27.5, E1/E1-224/E2 37.4, E3 29.3, E4
+  18.6, E5 18.4, E6 39.4). Test scoring on CPU (76.8 min). **Project total about 10.5 GPU hours.**
+- Next: Task 09 (Grad-CAM and SHAP).
