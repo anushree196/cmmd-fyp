@@ -1,0 +1,14 @@
+{
+  "id": "honeyyy09/cmmd-10-ablation-test",
+  "title": "cmmd-10-ablation-test",
+  "code_file": "cmmd_10_ablation_test.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "false",
+  "enable_internet": "true",
+  "dataset_sources": ["honeyyy09/cmmd-png1024", "honeyyy09/cmmd-code", "honeyyy09/cmmd-features"],
+  "competition_sources": [],
+  "kernel_sources": ["honeyyy09/cmmd-08-e0", "honeyyy09/cmmd-08-e0-paperdata", "honeyyy09/cmmd-09-s2-a",
+                     "honeyyy09/cmmd-09-s2-b", "honeyyy09/cmmd-09-s2-c", "honeyyy09/cmmd-09-s2-d", "honeyyy09/cmmd-09-s2-e"]
+}
