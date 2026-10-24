@@ -1,0 +1,62 @@
+{
+  "selected": [
+    "glrlm_RunEntropy",
+    "glrlm_RunVariance",
+    "glrlm_LongRunLowGrayLevelEmphasis",
+    "shape2D_PerimeterSurfaceRatio",
+    "firstorder_Range",
+    "glrlm_GrayLevelNonUniformity",
+    "glrlm_ShortRunHighGrayLevelEmphasis",
+    "firstorder_RootMeanSquared",
+    "shape2D_MajorAxisLength",
+    "shape2D_Perimeter",
+    "glcm_DifferenceEntropy",
+    "shape2D_MinorAxisLength",
+    "glcm_Idmn",
+    "firstorder_Minimum",
+    "glcm_InverseVariance",
+    "glrlm_ShortRunLowGrayLevelEmphasis",
+    "glrlm_LongRunHighGrayLevelEmphasis",
+    "firstorder_Entropy",
+    "firstorder_Skewness",
+    "glcm_JointEnergy"
+  ],
+  "settings": {
+    "force2D": true,
+    "force2Ddimension": 0,
+    "resampledPixelSpacing": [
+      0.211,
+      0.211,
+      0
+    ],
+    "interpolator": "sitkBSpline",
+    "binWidth": 8,
+    "normalize": false,
+    "label": 1,
+    "correctMask": true
+  },
+  "classes": [
+    "firstorder",
+    "shape2D",
+    "glcm",
+    "glrlm"
+  ],
+  "margin_px": 20,
+  "detector_mm": 0.094090909,
+  "common_mm": 0.211,
+  "pyradiomics": "3.1.1.dev111+g8ed579383",
+  "simpleitk": "2.5.6",
+  "n_features_extracted": 67,
+  "selection": "train split only: drop near-constant (top value > 95% of rows), rank by mutual information with subtype, drop |Spearman r| > 0.9 with a better-ranked feature, keep top 20",
+  "box_only_shape_fill_medians_from_train": {
+    "shape2D_Elongation": 0.6666627667165469,
+    "shape2D_MajorAxisLength": 31.946820397785096,
+    "shape2D_MaximumDiameter": 34.99357233835951,
+    "shape2D_MeshSurface": 408.85860349999973,
+    "shape2D_MinorAxisLength": 19.869473545691374,
+    "shape2D_Perimeter": 122.14823485228652,
+    "shape2D_PerimeterSurfaceRatio": 0.2855455216052246,
+    "shape2D_PixelSurface": 408.880864,
+    "shape2D_Sphericity": 0.6403014501083054
+  }
+}

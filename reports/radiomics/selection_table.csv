@@ -1,68 +1,68 @@
 feature,mi,decision
-glrlm_RunEntropy,0.07023012557807862,SELECTED (rank 1)
-glrlm_RunVariance,0.06422724342157693,SELECTED (rank 2)
-glrlm_LongRunLowGrayLevelEmphasis,0.06093058950367336,SELECTED (rank 3)
-shape2D_PerimeterSurfaceRatio,0.056792533078634744,SELECTED (rank 4)
-glcm_ClusterProminence,0.04793655706729982,dropped: |r| 0.91 with glrlm_RunEntropy
-firstorder_Range,0.045963220685198536,SELECTED (rank 5)
-glrlm_GrayLevelNonUniformity,0.039613453177049784,SELECTED (rank 6)
-glrlm_RunLengthNonUniformityNormalized,0.0381671861474806,dropped: |r| 0.94 with glrlm_RunVariance
-firstorder_Variance,0.037719713059031434,dropped: |r| 0.90 with glrlm_RunEntropy
-glcm_MCC,0.03699320158965769,dropped: |r| 0.94 with glrlm_RunEntropy
-glrlm_ShortRunHighGrayLevelEmphasis,0.035012772590294006,SELECTED (rank 7)
-glrlm_ShortRunEmphasis,0.030094421836742935,dropped: |r| 0.93 with glrlm_RunVariance
-glcm_Id,0.029823021183378096,dropped: |r| 0.94 with glrlm_RunVariance
-glcm_Imc2,0.029597843107848743,dropped: |r| 0.98 with glrlm_RunEntropy
-firstorder_RootMeanSquared,0.026530607802098594,SELECTED (rank 8)
-glcm_Autocorrelation,0.0261880760927915,dropped: |r| 0.97 with glrlm_ShortRunHighGrayLevelEmphasis
-shape2D_MajorAxisLength,0.025267850018815263,SELECTED (rank 9)
-shape2D_Perimeter,0.024707267246100173,SELECTED (rank 10)
-glcm_DifferenceEntropy,0.023253676353367947,SELECTED (rank 11)
-shape2D_MinorAxisLength,0.02290812003773679,SELECTED (rank 12)
-glcm_Idmn,0.022191568241018533,SELECTED (rank 13)
-glcm_Correlation,0.021709082665521073,dropped: |r| 0.94 with glrlm_RunEntropy
-firstorder_Minimum,0.021505189887019327,SELECTED (rank 14)
-glcm_Idm,0.02102235959155241,dropped: |r| 0.93 with glrlm_RunVariance
+glcm_Contrast,0.08013686781985463,SELECTED (rank 1)
+glrlm_LongRunEmphasis,0.06608981876142073,dropped: |r| 0.93 with glcm_Contrast
+glrlm_GrayLevelNonUniformity,0.06057190481037278,SELECTED (rank 2)
+shape2D_PerimeterSurfaceRatio,0.056792533078634744,SELECTED (rank 3)
+glrlm_ShortRunEmphasis,0.05246877023690333,dropped: |r| 0.97 with glcm_Contrast
+glcm_InverseVariance,0.047695666565021,SELECTED (rank 4)
+glcm_DifferenceVariance,0.043722131286490384,dropped: |r| 0.99 with glcm_Contrast
+glrlm_LowGrayLevelRunEmphasis,0.03919685554364971,SELECTED (rank 5)
+glrlm_ShortRunLowGrayLevelEmphasis,0.03887231240037137,dropped: |r| 0.91 with glrlm_LowGrayLevelRunEmphasis
+glcm_Imc1,0.037348181254290846,SELECTED (rank 6)
+glcm_MCC,0.035996585066235376,dropped: |r| 0.90 with glcm_Imc1
+firstorder_90Percentile,0.033588504029198774,SELECTED (rank 7)
+glrlm_RunPercentage,0.03323974587874767,dropped: |r| 0.95 with glcm_Contrast
+glcm_Id,0.030737490980374815,dropped: |r| 0.97 with glcm_Contrast
+firstorder_Uniformity,0.030067825238094148,SELECTED (rank 8)
+glcm_Correlation,0.02759494484891034,dropped: |r| 0.93 with glcm_Imc1
+firstorder_Energy,0.02710168352700082,SELECTED (rank 9)
+firstorder_TotalEnergy,0.02710168352700082,dropped: |r| 1.00 with firstorder_Energy
+firstorder_RobustMeanAbsoluteDeviation,0.026862495756701854,dropped: |r| 0.95 with firstorder_Uniformity
+firstorder_InterquartileRange,0.02540446944532615,dropped: |r| 0.95 with firstorder_Uniformity
+shape2D_MajorAxisLength,0.025267850018815263,SELECTED (rank 10)
+glrlm_RunEntropy,0.025184397272633774,SELECTED (rank 11)
+glrlm_RunLengthNonUniformityNormalized,0.024962688143891132,dropped: |r| 0.97 with glcm_Contrast
+shape2D_Perimeter,0.024707267246100173,SELECTED (rank 12)
+glcm_Idmn,0.02388486800576395,SELECTED (rank 13)
+shape2D_MinorAxisLength,0.02290812003773679,dropped: |r| 0.91 with glrlm_GrayLevelNonUniformity
+firstorder_RootMeanSquared,0.022647119435595275,dropped: |r| 0.90 with firstorder_90Percentile
+firstorder_MeanAbsoluteDeviation,0.022633885235372464,dropped: |r| 0.96 with firstorder_Uniformity
+glcm_ClusterShade,0.021474272732810995,SELECTED (rank 14)
+glcm_DifferenceEntropy,0.020266234881809897,dropped: |r| 1.00 with glcm_Contrast
 shape2D_MaximumDiameter,0.018837535047057763,dropped: |r| 0.98 with shape2D_MajorAxisLength
-glcm_InverseVariance,0.017979744391735775,SELECTED (rank 15)
-glrlm_ShortRunLowGrayLevelEmphasis,0.015244715080048099,SELECTED (rank 16)
-shape2D_PixelSurface,0.014179135291428668,dropped: |r| 0.94 with glrlm_GrayLevelNonUniformity
-glrlm_LongRunHighGrayLevelEmphasis,0.01406402969170406,SELECTED (rank 17)
-glrlm_RunPercentage,0.012824284014906429,dropped: |r| 0.98 with glrlm_RunVariance
-glrlm_LongRunEmphasis,0.012476463147246264,dropped: |r| 0.99 with glrlm_RunVariance
-glrlm_HighGrayLevelRunEmphasis,0.00984094848965178,dropped: |r| 0.99 with glrlm_ShortRunHighGrayLevelEmphasis
-firstorder_Entropy,0.009775761227809099,SELECTED (rank 18)
-firstorder_Skewness,0.00888888809626609,SELECTED (rank 19)
-glcm_JointEnergy,0.008713107444664914,SELECTED (rank 20)
-firstorder_10Percentile,0.007929068485569513,not in the top k
-shape2D_MeshSurface,0.007468326555033933,dropped: |r| 0.94 with glrlm_GrayLevelNonUniformity
-shape2D_Elongation,0.006886123693272239,not in the top k
-firstorder_Median,0.004581178496282146,dropped: |r| 0.99 with firstorder_RootMeanSquared
-glrlm_GrayLevelVariance,0.004052149674389938,dropped: |r| 0.95 with firstorder_Entropy
-glrlm_LowGrayLevelRunEmphasis,0.003162059517376914,dropped: |r| 0.98 with glrlm_ShortRunLowGrayLevelEmphasis
-firstorder_Mean,0.00106839631401634,dropped: |r| 1.00 with firstorder_RootMeanSquared
-firstorder_InterquartileRange,0.0004928563941319908,dropped: |r| 0.95 with firstorder_Entropy
-glcm_DifferenceAverage,0.0002700548569958272,dropped: |r| 0.98 with glcm_DifferenceEntropy
-firstorder_Energy,0.0,not in the top k
-firstorder_90Percentile,0.0,dropped: |r| 0.94 with firstorder_RootMeanSquared
-firstorder_Kurtosis,0.0,not in the top k
-shape2D_Sphericity,0.0,not in the top k
-glcm_Contrast,0.0,dropped: |r| 1.00 with glcm_DifferenceEntropy
-glcm_ClusterTendency,0.0,dropped: |r| 0.91 with glrlm_RunEntropy
-glcm_ClusterShade,0.0,not in the top k
-firstorder_TotalEnergy,0.0,not in the top k
-firstorder_Uniformity,0.0,dropped: |r| 0.99 with firstorder_Entropy
-glcm_Idn,0.0,dropped: |r| 0.98 with glcm_Idmn
-glcm_DifferenceVariance,0.0,dropped: |r| 0.95 with glcm_DifferenceEntropy
-glcm_JointAverage,0.0,dropped: |r| 0.95 with glrlm_ShortRunHighGrayLevelEmphasis
-glcm_MaximumProbability,0.0,dropped: |r| 0.92 with glcm_JointEnergy
-glcm_JointEntropy,0.0,dropped: |r| 0.98 with glcm_JointEnergy
-glcm_Imc1,0.0,not in the top k
-glcm_SumSquares,0.0,dropped: |r| 0.91 with glrlm_RunEntropy
-glrlm_GrayLevelNonUniformityNormalized,0.0,dropped: |r| 0.98 with firstorder_Entropy
-firstorder_RobustMeanAbsoluteDeviation,0.0,dropped: |r| 0.96 with firstorder_Entropy
-firstorder_MeanAbsoluteDeviation,0.0,dropped: |r| 0.90 with glrlm_RunEntropy
+firstorder_10Percentile,0.016095112359636232,SELECTED (rank 15)
+shape2D_PixelSurface,0.014179135291428668,dropped: |r| 0.96 with glrlm_GrayLevelNonUniformity
+glrlm_GrayLevelNonUniformityNormalized,0.010964835691416042,dropped: |r| 0.98 with firstorder_Uniformity
+firstorder_Skewness,0.00888888809626609,SELECTED (rank 16)
+shape2D_MeshSurface,0.007468326555033933,dropped: |r| 0.96 with glrlm_GrayLevelNonUniformity
+shape2D_Elongation,0.006886123693272239,SELECTED (rank 17)
+firstorder_Median,0.00553135410456429,SELECTED (rank 18)
+glcm_ClusterTendency,0.004811691672581109,dropped: |r| 0.95 with firstorder_Uniformity
+firstorder_Minimum,0.004014040997558865,SELECTED (rank 19)
+shape2D_Sphericity,0.0,SELECTED (rank 20)
+glcm_Autocorrelation,0.0,not in the top k
+firstorder_Variance,0.0,dropped: |r| 0.95 with firstorder_Uniformity
+firstorder_Range,0.0,not in the top k
+firstorder_Mean,0.0,dropped: |r| 0.97 with firstorder_Median
+firstorder_Entropy,0.0,dropped: |r| 0.99 with firstorder_Uniformity
+glcm_ClusterProminence,0.0,dropped: |r| 0.92 with firstorder_Uniformity
 firstorder_Maximum,0.0,not in the top k
-glrlm_RunLengthNonUniformity,0.0,dropped: |r| 0.95 with glrlm_GrayLevelNonUniformity
-glcm_SumEntropy,0.0,dropped: |r| 1.00 with firstorder_Entropy
-glcm_SumAverage,0.0,dropped: |r| 0.95 with glrlm_ShortRunHighGrayLevelEmphasis
+glcm_MaximumProbability,0.0,not in the top k
+glcm_JointEntropy,0.0,not in the top k
+glcm_JointEnergy,0.0,not in the top k
+glcm_JointAverage,0.0,not in the top k
+glcm_Imc2,0.0,dropped: |r| 0.95 with glrlm_RunEntropy
+glcm_DifferenceAverage,0.0,dropped: |r| 0.99 with glcm_Contrast
+glcm_Idm,0.0,dropped: |r| 0.98 with glcm_Contrast
+glcm_SumAverage,0.0,not in the top k
+glrlm_HighGrayLevelRunEmphasis,0.0,not in the top k
+glrlm_GrayLevelVariance,0.0,dropped: |r| 0.95 with firstorder_Uniformity
+glcm_SumEntropy,0.0,dropped: |r| 0.99 with firstorder_Uniformity
+glcm_SumSquares,0.0,dropped: |r| 0.96 with firstorder_Uniformity
+glrlm_LongRunHighGrayLevelEmphasis,0.0,not in the top k
+glrlm_LongRunLowGrayLevelEmphasis,0.0,not in the top k
+firstorder_Kurtosis,0.0,not in the top k
+glcm_Idn,0.0,dropped: |r| 0.97 with glcm_Idmn
+glrlm_RunVariance,0.0,dropped: |r| 0.91 with glcm_Contrast
+glrlm_RunLengthNonUniformity,0.0,dropped: |r| 0.92 with glrlm_GrayLevelNonUniformity
+glrlm_ShortRunHighGrayLevelEmphasis,0.0,not in the top k

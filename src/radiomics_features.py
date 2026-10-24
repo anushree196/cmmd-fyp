@@ -17,14 +17,20 @@ COMMON_MM = 0.211          # all lesions resampled to this pixel size
 MARGIN_PX = 20             # crop the lesion's bounding box plus this margin before extraction
 
 SETTINGS = {
-    "force2D": True, "force2Ddimension": 0,           # 2D mammogram: features per slice, one slice
-    "resampledPixelSpacing": [COMMON_MM, COMMON_MM, 0], # 0 = leave the (single) slice axis alone
+    # --- from the Master Document v2, section 4.5 (Anu, 2026-10-24) ---
+    "binWidth": 25,          # grey levels grouped in steps of 25 (after normalisation, see next two)
+    "normalize": True,       # each crop is standardised: (value - mean) / standard deviation ...
+    "normalizeScale": 100,   # ... times 100, so values span roughly -300..300 -> about 24 bins of width 25
+    # --- needed in addition (not in section 4.5) ---
+    "force2D": True, "force2Ddimension": 0,           # pyradiomics computes shape2D only in 2D mode
+    "resampledPixelSpacing": [COMMON_MM, COMMON_MM, 0], # one physical pixel size for every lesion (see top)
     "interpolator": "sitkBSpline",
-    "binWidth": 8,                                    # grey levels grouped in steps of 8 (8-bit image: 32 bins)
-    "normalize": False,                               # all PNGs share the same 8-bit scale already
     "label": 1,
     "correctMask": True,                              # keep the mask on the image grid after resampling
 }
+# Not copied from section 4.5 on purpose: there the lesion crop is first resized to 224 x 224 (section 4.4).
+# That stretches every lesion to the same size, so area, perimeter and axis lengths would describe the crop
+# box, not the tumour. Here the crop keeps its real size and only the pixel size is made common.
 CLASSES = ["firstorder", "shape2D", "glcm", "glrlm"]
 
 
@@ -105,7 +111,9 @@ def select_features(train, feature_cols, target, k=20, corr_limit=0.9, constant_
             usable.append(c)
     X = StandardScaler().fit_transform(train[usable])
     mi = mutual_info_classif(X, train[target], random_state=seed, n_neighbors=3)
-    order = [usable[i] for i in np.argsort(-mi)]
+    # stable sort: features with exactly the same MI (often 0) keep pyradiomics' own order, so ties are
+    # broken the same way on every computer
+    order = [usable[i] for i in np.argsort(-mi, kind="stable")]
     mi_of = dict(zip(usable, mi))
     corr = train[usable].corr(method="spearman").abs()
     kept = []

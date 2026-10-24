@@ -474,7 +474,7 @@
   `honeyyy09/cmmd-features` (862 KB) so task 08 notebooks can attach it; `scripts/05_package.py` builds it.
 - **Ran on the laptop, not on Kaggle** (differs from the task file): the pinned pyradiomics commit `8ed579383`
   installed on Windows / Python 3.12 too, with the same SimpleITK 2.5.6 as Kaggle. 34 s for all 671 lesions.
-- Settings (my choice; **the "Master doc §4.5" settings are not in the repo, so Anu should check these**):
+- Settings (my choice at the time; **superseded the same day by the §4.5 settings, see the next entry**):
   2D (`force2D`), classes firstorder, shape2D, glcm, glrlm; image cropped to the mask's bounding box + 20 px;
   bin width 8 on the 8-bit scale (32 bins); no intensity normalisation (all PNGs share one 8-bit scale); B-spline
   resampling; the real TOMPEI mask (union of all outlined lesions of the breast) as the ROI, never a full box.
@@ -501,3 +501,30 @@
     describe the union of the outline and the box.
 - GPU time: 0 (laptop CPU). Project total unchanged at about 7.0 GPU hours.
 - Next: Task 08 (Stage 2 ablation E0–E6).
+
+## 2026-10-24 — Task 07 rerun with the Master Document §4.5 settings (supersedes the features above)
+- Why: Anu added `docs/master_document_v2.md` (now committed) and asked for its §4.5 settings.
+- Settings now (`src/radiomics_features.py`): **binWidth 25, normalize True, normalizeScale 100**, classes
+  glcm, glrlm, shape2D, firstorder, crop margin 20 px (from §4.4 `CropForegroundd(margin=20)`). Kept in addition:
+  `force2D` (pyradiomics computes shape2D only in 2D mode; the §4.5 snippet omits it) and resampling every
+  lesion to 0.211 mm (task 07 scale fix).
+- **Deliberately not copied from the document:** §4.5 runs on the output of the §4.4 lesion pipeline, which
+  resizes every lesion crop to 224 × 224 first. That would make every lesion the same size, so area,
+  perimeter and axis lengths would describe the crop box, not the tumour — the same kind of shape bug §4.5 was
+  written to fix. The crop keeps its real size here; only the pixel size is made common.
+- Rerun: 671 of 671 lesions, 0 failures, 67 features. The first run's files are kept in
+  `data/features/previous_binwidth8/` and `reports/radiomics/previous_binwidth8/`.
+  - Shape features are identical to the first run (they do not depend on grey-level settings):
+    perimeter 15–535 mm (std 86), sphericity 0.19–0.94 (std 0.15), area 14–8,341 mm². "Done when" check passes.
+  - After normalisation, firstorder_Mean ranges −14 to 197 (it is now relative to each crop, not 0–255).
+- Re-selected on the training split only (469 breasts): 0 near-constant, 34 dropped for |Spearman r| > 0.9,
+  **20 kept**, 13 left over. Kept by class: firstorder 7, glcm 5, shape2D 5, glrlm 3.
+  Top three: glcm_Contrast (MI 0.080), glrlm_GrayLevelNonUniformity (0.061), shape2D_PerimeterSurfaceRatio
+  (0.057). Full list and every drop reason in `reports/radiomics/selection_table.csv`.
+  - 9 of 20 also chosen in the first run (incl. shape2D Perimeter, MajorAxisLength, PerimeterSurfaceRatio).
+  - **5 of the 20 carry almost no signal** (MI < 0.01): firstorder_Skewness, shape2D_Elongation,
+    firstorder_Median, firstorder_Minimum, and shape2D_Sphericity (MI 0.000). 14 candidates share MI = 0, so the
+    20th place is a tie; the sort is now stable (ties keep pyradiomics' own order) so the choice is reproducible.
+- Uploaded: new versions of `honeyyy09/cmmd-features` and `honeyyy09/cmmd-code`.
+- GPU time: 0. Project total unchanged at about 7.0 GPU hours.
+- Next: wait for Anu's "go", then Task 08 (Stage 2 ablation E0–E6).
