@@ -466,3 +466,38 @@
   - The "Invisible" subgroup improved (0.606 → 0.679) but still has a wide CI, with only 20 such cancers.
 - Stage 1 is now frozen. The test split is not to be scored again for Stage 1.
 - Next: Task 07 (radiomics on the real lesion masks, CPU notebook, pyradiomics from GitHub commit 8ed579383).
+
+## 2026-10-24 — Task 07: radiomics on the real lesion masks
+- Done: `src/radiomics_features.py` (extraction + training-only selection) and `scripts/07_radiomics.py`
+  → `data/features/radiomics_features.csv` (671 Stage 2 breasts × 67 features), `radiomics_selected.json`,
+  `reports/radiomics/selection_table.csv`, `reports/radiomics/summary.md`. Uploaded as the private Kaggle dataset
+  `honeyyy09/cmmd-features` (862 KB) so task 08 notebooks can attach it; `scripts/05_package.py` builds it.
+- **Ran on the laptop, not on Kaggle** (differs from the task file): the pinned pyradiomics commit `8ed579383`
+  installed on Windows / Python 3.12 too, with the same SimpleITK 2.5.6 as Kaggle. 34 s for all 671 lesions.
+- Settings (my choice; **the "Master doc §4.5" settings are not in the repo, so Anu should check these**):
+  2D (`force2D`), classes firstorder, shape2D, glcm, glrlm; image cropped to the mask's bounding box + 20 px;
+  bin width 8 on the 8-bit scale (32 bins); no intensity normalisation (all PNGs share one 8-bit scale); B-spline
+  resampling; the real TOMPEI mask (union of all outlined lesions of the breast) as the ROI, never a full box.
+- Physical scale (a problem found and fixed before extraction): PNGs were resized by different factors in
+  task 02, so one PNG pixel is 0.151–0.211 mm depending on the image. Every image is given its true pixel size
+  (DICOM `ImagerPixelSpacing` 0.0941 mm on all 671 MLOs, divided by that PNG's scale factor 0.446–0.622), and
+  every lesion is resampled to 0.211 mm (the coarsest, so no image is enlarged). Shape features are in mm / mm².
+- Box-only breasts (Anu's rule): 14 of 14 have empty shape2D columns in the CSV; for selection (and later for
+  the model) they are filled with the median of the TRAINING breasts that are not box-only (medians saved in
+  `radiomics_selected.json`), and `has_box_only` stays as its own column.
+- "Done when" check passed: shape features differ between patients (traced outlines): perimeter 15–535 mm
+  (median 126, std 86), sphericity 0.19–0.94 (median 0.64, std 0.15), area 14–8,341 mm² (median 423).
+- Feature selection on the training split only (469 breasts): 0 near-constant, 38 dropped for |Spearman r| > 0.9
+  with a better-ranked feature, 20 kept by mutual information with subtype, 9 left over. Kept: 7 glrlm, 5
+  firstorder, 4 glcm, 4 shape2D (PerimeterSurfaceRatio, MajorAxisLength, Perimeter, MinorAxisLength). Top three:
+  glrlm_RunEntropy (MI 0.070), glrlm_RunVariance (0.064), glrlm_LongRunLowGrayLevelEmphasis (0.061).
+- Surprises:
+  - The mutual information values are small (at most 0.07): on their own the radiomics carry only a weak
+    subtype signal. E4 in task 08 will show whether they add anything to the images.
+  - Three shape features (Elongation, Major/MinorAxisLength) come back from pyradiomics as complex numbers
+    with a zero imaginary part (eigenvalues); the code keeps the real part and stops if an imaginary part is
+    ever non-zero (it never was).
+  - The 18 breasts with a box AND a traced lesion are treated normally (Anu's rule), so their shape features
+    describe the union of the outline and the box.
+- GPU time: 0 (laptop CPU). Project total unchanged at about 7.0 GPU hours.
+- Next: Task 08 (Stage 2 ablation E0–E6).

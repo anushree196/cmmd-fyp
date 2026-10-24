@@ -88,6 +88,16 @@ def main():
     shutil.copy2(repo / "requirements-train.txt", code / "requirements-train.txt")
     write_metadata(code, user, "cmmd-code", "Project code (src/) and training requirements for the CMMD notebooks")
 
+    # ---- dataset 3 (after task 07): the radiomics features, small, so the big data dataset never needs re-uploading
+    feat_src = work / "features"
+    if (feat_src / "radiomics_features.csv").exists():
+        feat = work / "kaggle_features"
+        feat.mkdir(exist_ok=True)
+        for f in ["radiomics_features.csv", "radiomics_selected.json"]:
+            shutil.copy2(feat_src / f, feat / f)
+        write_metadata(feat, user, "cmmd-features", "Radiomics features of the Stage 2 lesions (task 07)")
+        print(f"{feat}: radiomics_features.csv + radiomics_selected.json")
+
     print(f"\n{up}:")
     print(f"  png{h}/    {n_png} files, {b_png / 1e9:.2f} GB")
     print(f"  masks{h}/  {n_mask} files, {b_mask / 1e6:.1f} MB")

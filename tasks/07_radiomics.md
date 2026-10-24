@@ -3,7 +3,9 @@
 Goal: `radiomics_features.csv`, one row per Stage 2 MLO image, top-20 selected features.
 
 Why Kaggle and not the laptop: pyradiomics is a compiled package that often fails to install on Windows.
-This step needs no GPU — use a CPU notebook and save GPU hours.
+This step needs no GPU. **It was run on the laptop (2026-10-24)**: the pinned pyradiomics commit installed
+there too (Python 3.12, SimpleITK 2.5.6, the same SimpleITK as Kaggle), so no Kaggle quota was needed. The
+result is uploaded as the small private dataset `honeyyy09/cmmd-features` for the Stage 2 notebooks.
 
 **Install route (tested 2026-10-23, `notebooks/01_env`, `reports/06_kaggle_env.json`):** Kaggle runs Python
 3.13.15. `pip install pyradiomics` from PyPI **fails** there (the wheel build errors). Installing from the
