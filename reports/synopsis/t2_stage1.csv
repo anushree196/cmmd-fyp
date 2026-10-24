@@ -1,0 +1,15 @@
+measure,v1,v2 (final)
+Test AUC (95% CI),0.767 (0.71–0.82),0.787 (0.73–0.84)
+Model,single model (epoch 7),ensemble of 5 CV fold models (recipe R3)
+Thresholds chosen on,validation (278 breasts),"out-of-fold predictions (1,577 breasts)"
+Youden: threshold,0.782,0.611
+Youden: sensitivity (95% CI),0.543 (0.48–0.61),0.609 (0.54–0.68)
+Youden: specificity (95% CI),0.841 (0.76–0.92),0.768 (0.68–0.86)
+≥90% sensitivity: threshold,0.171,0.169
+≥90% sensitivity: sensitivity (95% CI),0.843 (0.79–0.89),0.944 (0.91–0.97)
+≥90% sensitivity: specificity (95% CI),0.439 (0.33–0.55),0.256 (0.15–0.36)
+Subgroup AUC: dense breasts (n=234),0.756 (0.69–0.82),0.790 (0.73–0.85)
+Subgroup AUC: non-dense breasts (n=45),0.873 (0.73–0.97),0.841 (0.70–0.95)
+Subgroup AUC: 'Invisible' cancers vs all benign (n=102),0.606 (0.47–0.74),0.679 (0.56–0.79)
+Subgroup AUC: visible cancers vs all benign (n=259),0.785 (0.73–0.84),0.799 (0.74–0.85)
+Paired difference v2 − v1 in test AUC (95% CI),,+0.020 (-0.023 to +0.061)

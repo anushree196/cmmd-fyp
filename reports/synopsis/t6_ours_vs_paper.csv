@@ -1,0 +1,9 @@
+aspect,paper (Ben Rabah et al. 2025),ours
+Data,"CMMD, 4,056 images (we reproduce 4,040 by labelling per patient)","CMMD + TOMPEI-CMMD; Stage 1 3,712 images (1,856 breasts), Stage 2 671 patients, E0 2,590 images"
+Labels,"per patient: both breasts get the patient's subtype (1,458 images of unlabelled breasts)","per breast, CMMD rows with TOMPEI left/right corrections; 16 TOMPEI-excluded breasts dropped"
+Split,image-wise 72/18/10 (198 of 260 E0 test images have a sibling image in train),"patient-wise 70/15/15, one assignment for both stages, stratified incl. TOMPEI class"
+Metadata,"age ≥ 40, tumour class set from the image's folder: benign = 0 for every benign image",age + real CMMD lesion type for every breast
+Lesion localisation,"none (whole image, 224 px)",TOMPEI outline → MLO lesion crop and radiomics at a common 0.211 mm pixel size
+Benign class,inside one 5-class model; AUC 1.00 (the metadata gives it away),separate Stage 1 model: AUC 0.787 (0.728–0.843)
+Headline metric,"micro-average AUC (Keras AUC on one-hot labels), last of 10 epochs",macro and per-class AUC with patient bootstrap CIs; micro also reported
+Result,0.889 micro AUC (5 classes),E0-paperdata reproduces 0.859; leak removed 0.685; our chained 5-class 0.775 micro / 0.724 macro; subtype-only 0.55–0.64 macro

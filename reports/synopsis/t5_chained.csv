@@ -1,0 +1,3 @@
+model,breasts,micro AUC,macro AUC,Benign,LumA,LumB,HER2,TN
+"Ours: Stage 1 v2 → E6, soft chaining (test)",183,0.775 (0.72–0.82),0.724 (0.67–0.77),0.822 (0.76–0.88),0.707 (0.58–0.82),0.636 (0.55–0.72),0.799 (0.69–0.89),0.658 (0.53–0.79)
+Paper (leaky protocol),406 images,0.889,≈0.794,1.00,0.67,0.74,0.78,0.78

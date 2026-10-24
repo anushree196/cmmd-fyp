@@ -40,7 +40,7 @@ def per_seed_and_mean(prob_tables, classes, key_cols):
     return base, {"models": names, "averaged": summary_mc(base, classes), "single_models": singles}
 
 
-def score_e0(runs_root, data_root, out, device):
+def score_e0(runs_root, data_root, out, device, only=None):
     results = {}
     png_index = pd.read_csv(Path(data_root) / "index" / "png_index.csv")
     ours = e0.build_table(data_root)
@@ -49,6 +49,8 @@ def score_e0(runs_root, data_root, out, device):
     paper["split_image"] = e0.imagewise_split(paper)
     cache = {}
     for name, (split, use_image, use_meta, meta) in e0.CONFIGS.items():
+        if only and name not in only:
+            continue
         model_files = sorted(p for p in Path(runs_root).rglob("model.pt") if p.parent.parent.name == name)
         if not model_files:
             print(f"{name}: no trained models found, skipped")
@@ -107,6 +109,7 @@ def main(argv=None):
     ap.add_argument("--runs-root", required=True)
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--data-root", default=None)
+    ap.add_argument("--only", nargs="*", default=None, help="score only these E0 configurations (no Stage 2)")
     ap.add_argument("--force", action="store_true")
     args = ap.parse_args(argv)
     out = Path(args.out_dir)
@@ -117,8 +120,8 @@ def main(argv=None):
     data_root = find_data_root(args.data_root)
     t0 = time.time()
     results = {"scored_at": time.strftime("%Y-%m-%d %H:%M:%S"), "forced_rerun": args.force,
-               "e0": score_e0(args.runs_root, data_root, out, device),
-               "stage2": score_stage2(args.runs_root, data_root, out, device)}
+               "e0": score_e0(args.runs_root, data_root, out, device, args.only),
+               "stage2": {} if args.only else score_stage2(args.runs_root, data_root, out, device)}
     results["minutes"] = (time.time() - t0) / 60
     (out / "metrics_test.json").write_text(json.dumps(results, indent=2))
     print(f"done in {results['minutes']:.1f} min")

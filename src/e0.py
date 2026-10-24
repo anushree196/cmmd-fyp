@@ -272,6 +272,7 @@ CONFIGS = {
     "E0-meta-true":  ("imagewise", False, True,  "true"),    # metadata only, real lesion types
     "E0-patient":    ("patient",   True,  True,  "paper"),   # exact copy on our patient-wise split
     "E0-paperdata":  ("imagewise", True,  True,  "paper"),   # the paper's full protocol: per-patient labels too
+    "E0-clean":      ("patient",   True,  True,  "true"),    # both fixes: real lesion types AND patient-wise split
 }
 PAPERDATA = {"E0-paperdata"}  # these use build_table_paperdata (4,040 images) instead of our 2,590
 

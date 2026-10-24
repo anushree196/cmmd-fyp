@@ -1,0 +1,57 @@
+set,split,class,patients,breasts,images
+Stage 1 (benign vs malignant),train,benign,341,385,770
+Stage 1 (benign vs malignant),train,malignant,911,914,1828
+Stage 1 (benign vs malignant),train,all,1233,1299,2598
+Stage 2 (subtype; E1–E6),train,LumA,98,98,196
+Stage 2 (subtype; E1–E6),train,LumB,234,234,468
+Stage 2 (subtype; E1–E6),train,HER2,88,88,176
+Stage 2 (subtype; E1–E6),train,TN,49,49,98
+Stage 2 (subtype; E1–E6),train,all,469,469,938
+Stage 1 (benign vs malignant),val,benign,74,82,164
+Stage 1 (benign vs malignant),val,malignant,196,196,392
+Stage 1 (benign vs malignant),val,all,264,278,556
+Stage 2 (subtype; E1–E6),val,LumA,21,21,42
+Stage 2 (subtype; E1–E6),val,LumB,50,50,100
+Stage 2 (subtype; E1–E6),val,HER2,19,19,38
+Stage 2 (subtype; E1–E6),val,TN,11,11,22
+Stage 2 (subtype; E1–E6),val,all,101,101,202
+Stage 1 (benign vs malignant),test,benign,74,82,164
+Stage 1 (benign vs malignant),test,malignant,196,197,394
+Stage 1 (benign vs malignant),test,all,265,279,558
+Stage 2 (subtype; E1–E6),test,LumA,21,21,42
+Stage 2 (subtype; E1–E6),test,LumB,51,51,102
+Stage 2 (subtype; E1–E6),test,HER2,19,19,38
+Stage 2 (subtype; E1–E6),test,TN,10,10,20
+Stage 2 (subtype; E1–E6),test,all,101,101,202
+Stage 1 (benign vs malignant),total,benign,489,549,1098
+Stage 1 (benign vs malignant),total,malignant,1303,1307,2614
+Stage 1 (benign vs malignant),total,all,1762,1856,3712
+Stage 2 (subtype; E1–E6),total,LumA,140,140,280
+Stage 2 (subtype; E1–E6),total,LumB,335,335,670
+Stage 2 (subtype; E1–E6),total,HER2,126,126,252
+Stage 2 (subtype; E1–E6),total,TN,70,70,140
+Stage 2 (subtype; E1–E6),total,all,671,671,1342
+"E0 (5 classes, image-wise split)",train,Benign,452,501,790
+"E0 (5 classes, image-wise split)",train,LumA,135,135,216
+"E0 (5 classes, image-wise split)",train,LumB,354,354,540
+"E0 (5 classes, image-wise split)",train,HER2,129,129,194
+"E0 (5 classes, image-wise split)",train,TN,81,81,124
+"E0 (5 classes, image-wise split)",train,all,1141,1200,1864
+"E0 (5 classes, image-wise split)",val,Benign,176,179,197
+"E0 (5 classes, image-wise split)",val,LumA,47,47,54
+"E0 (5 classes, image-wise split)",val,LumB,130,130,135
+"E0 (5 classes, image-wise split)",val,HER2,45,45,49
+"E0 (5 classes, image-wise split)",val,TN,30,30,31
+"E0 (5 classes, image-wise split)",val,all,425,431,466
+"E0 (5 classes, image-wise split)",test,Benign,104,106,111
+"E0 (5 classes, image-wise split)",test,LumA,26,26,30
+"E0 (5 classes, image-wise split)",test,LumB,72,72,75
+"E0 (5 classes, image-wise split)",test,HER2,26,26,27
+"E0 (5 classes, image-wise split)",test,TN,17,17,17
+"E0 (5 classes, image-wise split)",test,all,245,247,260
+"E0 (5 classes, image-wise split)",total,Benign,489,549,1098
+"E0 (5 classes, image-wise split)",total,LumA,150,150,300
+"E0 (5 classes, image-wise split)",total,LumB,375,375,750
+"E0 (5 classes, image-wise split)",total,HER2,135,135,270
+"E0 (5 classes, image-wise split)",total,TN,86,86,172
+"E0 (5 classes, image-wise split)",total,all,1223,1295,2590
