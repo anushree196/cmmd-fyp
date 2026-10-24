@@ -59,6 +59,34 @@ def build_table(data_root):
     return rows[cols].sort_values("png").reset_index(drop=True)
 
 
+def build_table_paperdata(data_root):
+    """E0-paperdata: the paper's own data protocol, as far as we can reconstruct it (task 08 eligibility check).
+
+    Labels per PATIENT, from the original CMMD sheet (no TOMPEI corrections, nothing excluded): every image of a
+    patient with a subtype gets that subtype (including the other, unlabelled breast); every image of a
+    benign-only patient is benign; patients who are malignant without a subtype are left out. -> 4,040 images
+    (the paper has 4,056). Metadata as in the paper's code: tumour class 0 for benign, else the lesion type of
+    the subtyped CMMD row, given to all of that patient's images."""
+    idx = pd.read_csv(Path(data_root) / "index" / "png_index.csv")
+    lab = idx[idx["clinical_match"] == "both"]
+    pat = lab.groupby("patient_id").agg(
+        subtype=("subtype", lambda s: s.dropna().iloc[0] if s.notna().any() else None),
+        malignant=("classification", lambda c: (c == "Malignant").any()),
+        age=("Age", "first"),
+        lesion=("abnormality", lambda a: a.iloc[0]))
+    sub_lesion = lab[lab["subtype"].notna()].groupby("patient_id")["abnormality"].first()
+    pat["lesion"] = sub_lesion.reindex(pat.index).fillna(pat["lesion"])
+    keep = pat[pat["subtype"].notna() | ~pat["malignant"]]
+    rows = idx[idx["patient_id"].isin(keep.index)][["png", "patient_id", "side", "view"]].copy()
+    p = keep.loc[rows["patient_id"]]
+    rows["y"] = [0 if pd.isna(s) else CLASS_OF_SUBTYPE[s] for s in p["subtype"]]
+    rows["age_bin"] = (p["age"].to_numpy() >= 40).astype(np.float32)
+    rows["tumour_true"] = p["lesion"].map(TUMOUR).to_numpy().astype(np.float32)
+    rows["tumour_paper"] = np.where(rows["y"] == 0, 0.0, rows["tumour_true"]).astype(np.float32)
+    rows["split_patient"], rows["t_class"], rows["dense"], rows["subtype"] = None, None, None, p["subtype"].to_numpy()
+    return rows.sort_values("png").reset_index(drop=True)
+
+
 def imagewise_split(rows, seed=42):
     """The paper's split, done the way its code does it: 72% train, then the rest 64.28% / 35.72% -> val / test,
     both times stratified by class. Image-wise, so one patient's images can land in different parts."""
@@ -243,7 +271,9 @@ CONFIGS = {
     "E0-meta":       ("imagewise", False, True,  "paper"),   # metadata only, paper's encoding
     "E0-meta-true":  ("imagewise", False, True,  "true"),    # metadata only, real lesion types
     "E0-patient":    ("patient",   True,  True,  "paper"),   # exact copy on our patient-wise split
+    "E0-paperdata":  ("imagewise", True,  True,  "paper"),   # the paper's full protocol: per-patient labels too
 }
+PAPERDATA = {"E0-paperdata"}  # these use build_table_paperdata (4,040 images) instead of our 2,590
 
 
 def run_family(data_root, out_root, names=None, seeds=(42, 43, 44), limit=0, workers=2, pretrained=True, epochs=10):
@@ -261,13 +291,24 @@ def run_family(data_root, out_root, names=None, seeds=(42, 43, 44), limit=0, wor
     Path(out_root).mkdir(parents=True, exist_ok=True)
     rows.to_csv(Path(out_root) / "e0_rows.csv", index=False)  # every image, its class and both splits
     results = {}
+    paper = None
     for name in names or CONFIGS:
         split, use_image, use_meta, meta = CONFIGS[name]
-        r = rows.assign(split=rows["split_image"] if split == "imagewise" else rows["split_patient"])
+        if name in PAPERDATA:  # the paper's own labelling, its own image-wise split and images
+            if paper is None:
+                prow = build_table_paperdata(data_root)
+                prow["split_image"] = imagewise_split(prow)
+                prow.to_csv(Path(out_root) / "e0_paperdata_rows.csv", index=False)
+                print(f"E0-paperdata: {len(prow)} images, {prow['patient_id'].nunique()} patients | per class "
+                      f"{prow['y'].map(dict(enumerate(CLASSES))).value_counts().to_dict()}")
+                paper = (prow, load_images(prow, data_root, png_index))
+            r, imgs = paper[0].assign(split=paper[0]["split_image"]), paper[1]
+        else:
+            r, imgs = rows.assign(split=rows["split_image"] if split == "imagewise" else rows["split_patient"]), images
         for seed in seeds:
             cfg = {"name": name, "seed": seed, "split": split, "use_image": use_image, "use_meta": use_meta,
                    "meta": meta, "workers": workers, "pretrained": pretrained, "epochs": epochs}
-            m = train_one(r, images, cfg, Path(out_root) / name / f"seed{seed}", device)
+            m = train_one(r, imgs, cfg, Path(out_root) / name / f"seed{seed}", device)
             results[(name, seed)] = m
             print(f"{name} seed {seed}: val acc {m['accuracy']:.3f} | macro AUC {m['auc_macro']:.3f} | "
                   f"micro AUC {m['auc_micro']:.3f} | Benign AUC {m['auc_Benign']:.3f} | {m['minutes']:.1f} min", flush=True)
