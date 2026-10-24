@@ -1,0 +1,13 @@
+{
+  "id": "honeyyy09/cmmd-05-stage1-cv-a",
+  "title": "cmmd-05-stage1-cv-a",
+  "code_file": "cmmd_05_stage1_cv_a.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "dataset_sources": ["honeyyy09/cmmd-png1024", "honeyyy09/cmmd-code"],
+  "competition_sources": [],
+  "kernel_sources": []
+}

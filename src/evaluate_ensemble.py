@@ -34,6 +34,8 @@ def main(argv=None):
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--data-root", default=None)
     ap.add_argument("--workers", type=int, default=2)
+    ap.add_argument("--require", default="", help="only use fold runs whose path contains this text")
+    ap.add_argument("--exclude", default="", help="skip fold runs whose path contains this text")
     ap.add_argument("--force", action="store_true")
     args = ap.parse_args(argv)
     out = Path(args.out_dir)
@@ -41,7 +43,8 @@ def main(argv=None):
     if (out / "metrics_test.json").exists() and not args.force:
         raise SystemExit("Test results already exist here. The test split is scored only once.")
 
-    runs = sorted({p.parent for p in Path(args.runs_root).rglob("best.pt") if p.parent.name.startswith("fold")},
+    runs = sorted({p.parent for p in Path(args.runs_root).rglob("best.pt") if p.parent.name.startswith("fold")
+                   and args.require in str(p) and not (args.exclude and args.exclude in str(p))},
                   key=lambda p: p.name)
     cfgs = [json.loads((r / "run_config.json").read_text()) for r in runs]
     print("fold runs:", [str(r) for r in runs])
