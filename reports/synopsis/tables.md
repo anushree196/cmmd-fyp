@@ -93,15 +93,15 @@ Sources: `reports/stage1/metrics_test.json`; `reports/stage1_v2/metrics_test.jso
 
 ## T3: The leak ladder (E0 family, 5 classes, test, average of 3 seeds)
 
-| run               | what                                                                                     | test images   | micro AUC         | macro AUC         |   Benign |    LumA |    LumB |    HER2 |      TN |     ACC |   precision |   recall |      F1 |
-|:------------------|:-----------------------------------------------------------------------------------------|:--------------|:------------------|:------------------|---------:|--------:|--------:|--------:|--------:|--------:|------------:|---------:|--------:|
-| Paper (published) | their protocol, their data                                                               | 406           | 0.889             | ≈0.794            |    1     |   0.67  |   0.74  |   0.78  |   0.78  |   0.638 |       0.46  |    0.64  |   0.52  |
-| E0-paperdata      | their full protocol: per-patient labels (4,040 images), leaky metadata, image-wise split | 405           | 0.859 (0.83–0.88) | 0.770 (0.74–0.80) |    1     |   0.714 |   0.755 |   0.735 |   0.646 |   0.548 |       0.452 |    0.456 |   0.452 |
-| E0                | our per-breast labels (2,590 images); their leaky metadata and image-wise split          | 260           | 0.920 (0.90–0.94) | 0.850 (0.82–0.88) |    1     |   0.821 |   0.826 |   0.83  |   0.773 |   0.638 |       0.47  |    0.481 |   0.469 |
-| E0-meta           | E0's metadata only, no image                                                             | 260           | 0.902 (0.88–0.93) | 0.850 (0.82–0.88) |    1     |   0.78  |   0.84  |   0.842 |   0.79  |   0.577 |       0.341 |    0.485 |   0.382 |
-| E0-truemeta       | E0 with real lesion types for benign (leak removed)                                      | 260           | 0.685 (0.64–0.73) | 0.632 (0.58–0.68) |    0.738 |   0.618 |   0.514 |   0.713 |   0.577 |   0.365 |       0.275 |    0.281 |   0.27  |
-| E0-patient        | E0 on our patient-wise split (leak kept)                                                 | 388           | 0.904 (0.87–0.93) | 0.810 (0.77–0.85) |    1     |   0.728 |   0.795 |   0.807 |   0.721 |   0.621 |       0.426 |    0.426 |   0.423 |
-| E0-clean          | real lesion types AND patient-wise split (both fixes) — NOT RUN                          | –             | nan               | nan               |  nan     | nan     | nan     | nan     | nan     | nan     |     nan     |  nan     | nan     |
+| run               | what                                                                                     |   test images | micro AUC         | macro AUC         |   Benign |   LumA |   LumB |   HER2 |    TN |   ACC |   precision |   recall |    F1 |
+|:------------------|:-----------------------------------------------------------------------------------------|--------------:|:------------------|:------------------|---------:|-------:|-------:|-------:|------:|------:|------------:|---------:|------:|
+| Paper (published) | their protocol, their data                                                               |           406 | 0.889             | ≈0.794            |    1     |  0.67  |  0.74  |  0.78  | 0.78  | 0.638 |       0.46  |    0.64  | 0.52  |
+| E0-paperdata      | their full protocol: per-patient labels (4,040 images), leaky metadata, image-wise split |           405 | 0.859 (0.83–0.88) | 0.770 (0.74–0.80) |    1     |  0.714 |  0.755 |  0.735 | 0.646 | 0.548 |       0.452 |    0.456 | 0.452 |
+| E0                | our per-breast labels (2,590 images); their leaky metadata and image-wise split          |           260 | 0.920 (0.90–0.94) | 0.850 (0.82–0.88) |    1     |  0.821 |  0.826 |  0.83  | 0.773 | 0.638 |       0.47  |    0.481 | 0.469 |
+| E0-meta           | E0's metadata only, no image                                                             |           260 | 0.902 (0.88–0.93) | 0.850 (0.82–0.88) |    1     |  0.78  |  0.84  |  0.842 | 0.79  | 0.577 |       0.341 |    0.485 | 0.382 |
+| E0-truemeta       | E0 with real lesion types for benign (leak removed)                                      |           260 | 0.685 (0.64–0.73) | 0.632 (0.58–0.68) |    0.738 |  0.618 |  0.514 |  0.713 | 0.577 | 0.365 |       0.275 |    0.281 | 0.27  |
+| E0-patient        | E0 on our patient-wise split (leak kept)                                                 |           388 | 0.904 (0.87–0.93) | 0.810 (0.77–0.85) |    1     |  0.728 |  0.795 |  0.807 | 0.721 | 0.621 |       0.426 |    0.426 | 0.423 |
+| E0-clean          | real lesion types AND patient-wise split (both fixes)                                    |           388 | 0.704 (0.66–0.74) | 0.602 (0.55–0.65) |    0.681 |  0.612 |  0.499 |  0.723 | 0.495 | 0.381 |       0.3   |    0.284 | 0.28  |
 
 Precision, recall and F1 are macro averages (our runs); the paper does not say which average it reports. The paper's macro AUC is our average of its five per-class AUCs. E0-paperdata, E0, E0-meta and E0-truemeta are tested on their own image-wise test parts; E0-patient and E0-clean on our patient-wise test patients (images).
 
@@ -112,7 +112,7 @@ Sources: `paper: docs/baseline_paper_notes.md`; `reports/stage2/test/metrics_tes
 | experiment                            | what changed                                                                     | val macro AUC (mean ± std)   | test macro AUC (95% CI)   |   test LumA |   test LumB |   test HER2 |   test TN |
 |:--------------------------------------|:---------------------------------------------------------------------------------|:-----------------------------|:--------------------------|------------:|------------:|------------:|----------:|
 | E0-patient (4 subtypes)               | E0 (Xception, 224 px, leaky metadata) on the patient split, scored on 4 subtypes | 0.563 ± 0.019 (n=3)          | 0.520 (0.44–0.61)         |       0.468 |       0.507 |       0.639 |     0.466 |
-| E0-clean (4 subtypes)                 | E0-clean (both fixes), scored on 4 subtypes — NOT RUN                            | nan                          | nan                       |     nan     |     nan     |     nan     |   nan     |
+| E0-clean (4 subtypes)                 | E0-clean (both fixes), scored on 4 subtypes                                      | 0.593 ± 0.009 (n=3)          | 0.546 (0.46–0.63)         |       0.516 |       0.533 |       0.684 |     0.452 |
 | E1-224                                | EfficientNet-B3, MLO only, 224 px, age + lesion type                             | 0.586 ± 0.014 (n=3)          | 0.502 (0.41–0.60)         |       0.581 |       0.505 |       0.551 |     0.37  |
 | E1                                    | image size 224 → 512 px                                                          | 0.611 ± 0.043 (n=3)          | 0.551 (0.47–0.64)         |       0.558 |       0.489 |       0.688 |     0.467 |
 | E2                                    | + CC view with View Attention                                                    | 0.622 ± 0.013 (n=3)          | 0.586 (0.49–0.68)         |       0.545 |       0.541 |       0.635 |     0.625 |
@@ -139,20 +139,45 @@ Sources: `reports/stage2/test/chained_5class_metrics.json`; `reports/ablation_ta
 
 ## T6: Our work compared with the baseline paper
 
-| aspect              | paper (Ben Rabah et al. 2025)                                                            | ours                                                                                                                           |
-|:--------------------|:-----------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------|
-| Data                | CMMD, 4,056 images (we reproduce 4,040 by labelling per patient)                         | CMMD + TOMPEI-CMMD; Stage 1 3,712 images (1,856 breasts), Stage 2 671 patients, E0 2,590 images                                |
-| Labels              | per patient: both breasts get the patient's subtype (1,458 images of unlabelled breasts) | per breast, CMMD rows with TOMPEI left/right corrections; 16 TOMPEI-excluded breasts dropped                                   |
-| Split               | image-wise 72/18/10 (198 of 260 E0 test images have a sibling image in train)            | patient-wise 70/15/15, one assignment for both stages, stratified incl. TOMPEI class                                           |
-| Metadata            | age ≥ 40, tumour class set from the image's folder: benign = 0 for every benign image    | age + real CMMD lesion type for every breast                                                                                   |
-| Lesion localisation | none (whole image, 224 px)                                                               | TOMPEI outline → MLO lesion crop and radiomics at a common 0.211 mm pixel size                                                 |
-| Benign class        | inside one 5-class model; AUC 1.00 (the metadata gives it away)                          | separate Stage 1 model: AUC 0.787 (0.728–0.843)                                                                                |
-| Headline metric     | micro-average AUC (Keras AUC on one-hot labels), last of 10 epochs                       | macro and per-class AUC with patient bootstrap CIs; micro also reported                                                        |
-| Result              | 0.889 micro AUC (5 classes)                                                              | E0-paperdata reproduces 0.859; leak removed 0.685; our chained 5-class 0.775 micro / 0.724 macro; subtype-only 0.55–0.64 macro |
+| aspect              | paper (Ben Rabah et al. 2025)                                                            | ours                                                                                                                                                                                           |
+|:--------------------|:-----------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Data                | CMMD, 4,056 images (we reproduce 4,040 by labelling per patient)                         | CMMD + TOMPEI-CMMD; Stage 1 3,712 images (1,856 breasts), Stage 2 671 patients, E0 2,590 images                                                                                                |
+| Labels              | per patient: both breasts get the patient's subtype (1,458 images of unlabelled breasts) | per breast, CMMD rows with TOMPEI left/right corrections; 16 TOMPEI-excluded breasts dropped                                                                                                   |
+| Split               | image-wise 72/18/10 (198 of 260 E0 test images have a sibling image in train)            | patient-wise 70/15/15, one assignment for both stages, stratified incl. TOMPEI class                                                                                                           |
+| Metadata            | age ≥ 40, tumour class set from the image's folder: benign = 0 for every benign image    | age + real CMMD lesion type for every breast                                                                                                                                                   |
+| Lesion localisation | none (whole image, 224 px)                                                               | TOMPEI outline → MLO lesion crop and radiomics at a common 0.211 mm pixel size                                                                                                                 |
+| Benign class        | inside one 5-class model; AUC 1.00 (the metadata gives it away)                          | separate Stage 1 model: AUC 0.787 (0.73–0.84)                                                                                                                                                  |
+| Headline metric     | micro-average AUC (Keras AUC on one-hot labels), last of 10 epochs                       | macro and per-class AUC with patient bootstrap CIs; micro also reported                                                                                                                        |
+| Result              | 0.889 micro AUC (5 classes)                                                              | their protocol re-run (E0-paperdata) 0.859; leak removed (E0-truemeta) 0.685; both fixes (E0-clean) 0.704; our chained 5-class 0.775 micro / 0.724 macro; subtype-only (E1–E6) 0.55–0.64 macro |
 
 Sources: `docs/baseline_paper_notes.md`; `https://github.com/serag-ai/Multimodal-BC-Classifier (checked 2026-10-24)`; `reports/08_e0_eligibility.md`; `reports/ablation_table.md`; `reports/stage1_v2/metrics_test.json`; `PROGRESS.md (tasks 03, 04, 07, 08)`
+
+## Key findings
+
+1. Benign vs malignant (Stage 1): our final model reaches a test AUC of 0.79 (0.73–0.84) on 279 breasts, judged honestly on unseen patients.
+2. At a threshold set to catch 90% of cancers it finds 94% of test cancers but clears only 26% of benign breasts. Dense breasts score 0.79 against 0.84 for non-dense; cancers no radiologist could locate ('Invisible') are hardest at 0.68.
+3. The improved Stage 1 recipe beat the first model by +0.020 AUC, but the difference is within noise (95% CI -0.023 to +0.061).
+4. The baseline paper's code is public. It sets the 'tumour type' input to 'none' for every benign image, so the model is told which images are benign.
+5. Re-running their exact protocol we get 0.86 micro AUC, close to their published 0.89; their 88.87% is a micro average, which an easy class inflates.
+6. That leaked input alone, with no mammogram at all, scores 0.90 micro AUC and a perfect 1.00 for benign.
+7. Giving benign breasts their real lesion type drops the same model to 0.69 micro AUC; with a patient-wise split as well (E0-clean) it is 0.70 micro / 0.60 macro.
+8. The paper also labelled both breasts of a patient with the tumour's subtype (1,458 images of breasts with no labelled cancer); with correct per-breast labels the leaky model scores 0.92, not lower, so the metadata leak, not the labelling, drives the headline.
+9. Predicting the molecular subtype from the image is genuinely hard: on 101 test patients our best models reach a macro AUC of 0.64 (E5, gated fusion) and 0.59 (E6), and no added component is shown to help beyond noise; the leaky baseline scores 0.52 on the same 4-subtype task.
+10. Chaining the two stages gives an honest 5-class result of 0.77 micro / 0.72 macro AUC — lower than the paper's headline, but free of the label leak, the image-wise split and the per-patient labelling.
+
+## Figures (300 dpi PNG, black and white)
+
+| file | caption | source |
+|---|---|---|
+| `f1_flowchart.png` | Inclusion and exclusion: from 5,202 CMMD images to the Stage 1, E0 and Stage 2 sets. | `data/index/pairs.csv (task 04), cross-check reports/04_data_flow.md` |
+| `f2_class_distribution.png` | Class distribution per split: Stage 1 breasts (left), Stage 2 patients (right). | `t1_dataset.csv (from data/splits/stage1.csv, stage2.csv)` |
+| `f3_architecture.png` | Block diagrams of Stage 1 and Stage 2 (E5; E6 is the 5-fold ensemble of E5). | `src/models.py, src/stage2.py` |
+| `f4_training_curves.png` | Training and validation curves: Stage 1 v2 (5 CV folds of recipe R3) and Stage 2 E5 (3 seeds). | `reports/stage1_v2/cv_r3/fold*/training_log.csv, reports/stage2/val/E5/seed*/training_log.csv` |
+| `f5_roc_e0_chained.png` | One-vs-rest test ROC: (a) E0 (its 260 image-wise test images) vs E0-clean (its 388 patient-wise test images); (b) the chained 5-class model (183 breasts). | `reports/stage2/test/test_E0.csv, reports/stage2/test_e0clean/test_E0-clean.csv, reports/stage2/test/chained_5class.csv` |
+| `f6_stage1_roc.png` | Stage 1 test ROC (v2 and v1) with the two operating points of v2, both chosen on out-of-fold predictions. | `reports/stage1_v2/test_predictions.csv, reports/stage1/test_predictions.csv, reports/stage1_v2/metrics_test.json` |
+| `f7_leak_ladder.png` | The leak ladder: test micro and macro AUC from the paper's protocol to a clean evaluation. | `t3_leak_ladder.csv` |
+| `f8_ablation_ci.png` | Stage 2 ablation: test macro AUC with 95% CI (dots) and validation mean (squares). | `reports/stage2/test/metrics_test.json, reports/stage2/val/*/*/metrics_val.json` |
 
 ## Figure notes
 
 - F4: Stage 2 (E5) training logs record training loss and validation AUC but NOT validation loss (`src/stage2.py` never logged it), so panel (c) shows training loss only. Stage 1 v2 logs are complete.
-- F5: skipped — E0-clean test predictions are not available.

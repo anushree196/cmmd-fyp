@@ -1,10 +1,11 @@
 # Task 08b: E0-clean = E0 with real lesion types AND our patient-wise split, 3 seeds. Nothing is chosen on
 # validation (E0 always keeps the last epoch, as the paper), so after training this notebook scores E0-clean's
 # test split once. Outputs: /kaggle/working/e0/E0-clean/seed<k>/ and /kaggle/working/e0_clean_test/
-import json, sys, time
+import json, subprocess, sys, time
 from pathlib import Path
 
 t0 = time.time()
+subprocess.run([sys.executable, "-m", "pip", "install", "-q", "monai"], check=True)  # the scorer imports src.stage2
 code_root = next(p.parent.parent for p in Path("/kaggle/input").rglob("src/config.py"))
 sys.path.insert(0, str(code_root))
 data_root = next(p.parent for p in Path("/kaggle/input").rglob("png1024") if p.is_dir())

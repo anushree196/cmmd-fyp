@@ -255,9 +255,13 @@ r = [("Data", "CMMD, 4,056 images (we reproduce 4,040 by labelling per patient)"
      ("Split", "image-wise 72/18/10 (198 of 260 E0 test images have a sibling image in train)", "patient-wise 70/15/15, one assignment for both stages, stratified incl. TOMPEI class"),
      ("Metadata", "age ≥ 40, tumour class set from the image's folder: benign = 0 for every benign image", "age + real CMMD lesion type for every breast"),
      ("Lesion localisation", "none (whole image, 224 px)", "TOMPEI outline → MLO lesion crop and radiomics at a common 0.211 mm pixel size"),
-     ("Benign class", "inside one 5-class model; AUC 1.00 (the metadata gives it away)", "separate Stage 1 model: AUC 0.787 (0.728–0.843)"),
+     ("Benign class", "inside one 5-class model; AUC 1.00 (the metadata gives it away)", f"separate Stage 1 model: AUC {ci(v2['auc'], v2['auc_ci95'])}"),
      ("Headline metric", "micro-average AUC (Keras AUC on one-hot labels), last of 10 epochs", "macro and per-class AUC with patient bootstrap CIs; micro also reported"),
-     ("Result", "0.889 micro AUC (5 classes)", "E0-paperdata reproduces 0.859; leak removed 0.685; our chained 5-class 0.775 micro / 0.724 macro; subtype-only 0.55–0.64 macro")]
+     ("Result", f"{PAPER['micro']:.3f} micro AUC (5 classes)",
+      f"their protocol re-run (E0-paperdata) {e0m('E0-paperdata')['auc_micro']:.3f}; leak removed (E0-truemeta) {e0m('E0-truemeta')['auc_micro']:.3f}; "
+      + (f"both fixes (E0-clean) {e0m('E0-clean')['auc_micro']:.3f}; " if e0m('E0-clean') else "")
+      + f"our chained 5-class {chain['auc_micro']:.3f} micro / {chain['auc_macro']:.3f} macro; subtype-only (E1–E6) "
+      f"{min(abl['stage2'][e]['averaged']['auc_macro'] for e in ['E1', 'E2', 'E3', 'E4', 'E5', 'E6']):.2f}–{max(abl['stage2'][e]['averaged']['auc_macro'] for e in ['E1', 'E2', 'E3', 'E4', 'E5', 'E6']):.2f} macro")]
 table("t6_ours_vs_paper", "Our work compared with the baseline paper", pd.DataFrame(r, columns=["aspect", "paper (Ben Rabah et al. 2025)", "ours"]),
       ["docs/baseline_paper_notes.md", f"{REPO_URL} (checked {REPO_CHECKED})", "reports/08_e0_eligibility.md",
        "reports/ablation_table.md", "reports/stage1_v2/metrics_test.json", "PROGRESS.md (tasks 03, 04, 07, 08)"])
@@ -329,7 +333,7 @@ for ax, (title, groups, col) in zip(axes, [("Stage 1: breasts per split", ["beni
     ax.set_xticks(x, SPL)
     ax.set_title(title)
     ax.set_ylabel("count")
-    ax.legend(frameon=False, ncol=len(groups) if len(groups) > 2 else 1)
+    ax.legend(frameon=False, ncol=2 if len(groups) > 2 else 1, loc="upper right")
 fig.tight_layout()
 save(fig, "f2_class_distribution")
 
@@ -379,12 +383,12 @@ save(fig, "f3_architecture")
 fig, axes = plt.subplots(2, 2, figsize=(7.2, 5.0))
 logs = [pd.read_csv(f) for f in sorted(Path("reports/stage1_v2/cv_r3").glob("fold*/training_log.csv"))]
 for k, lg in enumerate(logs):
-    axes[0, 0].plot(lg.epoch, lg.train_loss, color="0.2", ls=STYLES[k], lw=0.9, label=f"fold {k} train")
-    axes[0, 0].plot(lg.epoch, lg.val_loss, color="0.6", ls=STYLES[k], lw=0.9, label=f"fold {k} val")
+    axes[0, 0].plot(lg.epoch, lg.train_loss, color="0.15", ls=STYLES[k], lw=0.9, label="training (5 folds)" if k == 0 else None)
+    axes[0, 0].plot(lg.epoch, lg.val_loss, color="0.6", ls=STYLES[k], lw=0.9, label="validation (5 folds)" if k == 0 else None)
     axes[0, 1].plot(lg.epoch, lg.val_auc, color="0.2", ls=STYLES[k], marker=MARKERS[k], ms=3, lw=0.9, label=f"fold {k}")
 axes[0, 0].set(title="(a) Stage 1 v2 (R3, 5 folds): loss", xlabel="epoch", ylabel="weighted cross-entropy")
 axes[0, 1].set(title="(b) Stage 1 v2: validation AUC (held-out fold)", xlabel="epoch", ylabel="AUC")
-axes[0, 0].legend(frameon=False, ncol=2, fontsize=6)
+axes[0, 0].legend(frameon=False, loc="lower left", fontsize=7)
 axes[0, 1].legend(frameon=False, fontsize=6.5)
 logs5 = {f.parent.name: pd.read_csv(f) for f in sorted(Path("reports/stage2/val/E5").glob("seed*/training_log.csv"))}
 for k, (sd, lg) in enumerate(logs5.items()):
@@ -412,7 +416,6 @@ def roc_panel(ax, frames, classes, title):
         ax[k].plot([0, 1], [0, 1], color="0.75", lw=0.6, ls=":")
         ax[k].set(title=c, xlabel="1 − specificity", aspect="equal", xlim=(0, 1), ylim=(0, 1))
     ax[0].set_ylabel("sensitivity")
-    ax[0].legend(frameon=False, loc="lower right", fontsize=6.5)
 
 
 e0_order = ["Benign", "HER2", "LumA", "LumB", "TN"]
@@ -424,14 +427,16 @@ for lab_, csv in [("E0 (leaky metadata, image-wise)", "reports/stage2/test/test_
         t.attrs["classes"] = e0_order
         frames.append((lab_, t))
 if len(frames) == 2:
-    fig, ax = plt.subplots(2, 5, figsize=(7.4, 3.4))
+    fig, ax = plt.subplots(2, 5, figsize=(7.4, 4.4))
     roc_panel(ax[0], frames, FIVE, "")
     ch = pd.read_csv("reports/stage2/test/chained_5class.csv")
     ch.attrs["classes"] = FIVE
     roc_panel(ax[1], [("chained Stage 1 → E6", ch)], FIVE, "")
-    ax[0][0].annotate("(a) E0 vs E0-clean", (0, 1.25), xycoords="axes fraction", fontsize=9, fontweight="bold")
-    ax[1][0].annotate("(b) chained 5-class model", (0, 1.25), xycoords="axes fraction", fontsize=9, fontweight="bold")
-    fig.tight_layout()
+    fig.subplots_adjust(top=0.80, bottom=0.10, hspace=0.85, wspace=0.55, left=0.07, right=0.99)
+    h, l = ax[0][0].get_legend_handles_labels()
+    fig.legend(h, l, loc="upper center", bbox_to_anchor=(0.5, 0.995), ncol=2, frameon=False, fontsize=7.5)
+    fig.text(0.01, 0.875, "(a) E0 vs E0-clean, one-vs-rest ROC (test)", fontsize=9, fontweight="bold")
+    fig.text(0.01, 0.43, "(b) chained Stage 1 → E6, one-vs-rest ROC (test)", fontsize=9, fontweight="bold")
     save(fig, "f5_roc_e0_chained")
 else:
     notes.append("F5: skipped — E0-clean test predictions are not available.")
@@ -465,10 +470,11 @@ for i, (vals, lab_) in enumerate([(micro, "micro AUC"), (macro, "macro AUC")]):
     for b_, v in zip(bars, vals):
         ax.text(b_.get_x() + b_.get_width() / 2, v + 0.01, f"{v:.2f}", ha="center", va="bottom", fontsize=6.5)
 ax.axhline(0.5, color="0.4", lw=0.7, ls=":")
-ax.text(len(names) - 0.5, 0.505, "chance", fontsize=6.5, ha="right", va="bottom", color="0.3")
+ax.text(-0.62, 0.505, "chance", fontsize=6.5, ha="left", va="bottom", color="0.3")
 ax.set_xticks(x, [n.replace(" (published)", "\n(published)") for n in names], fontsize=7.5)
-ax.set(ylim=(0.4, 1.0), ylabel="test AUC (5 classes)", title="The leak ladder: from the paper's protocol to a clean evaluation")
-ax.legend(frameon=False, loc="upper right")
+ax.set(ylim=(0.4, 1.0), xlim=(-0.65, len(names) - 0.35), ylabel="test AUC (5 classes)",
+       title="The leak ladder: from the paper's protocol to a clean evaluation")
+ax.legend(frameon=False, loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=2)
 ax.grid(True, axis="y")
 save(fig, "f7_leak_ladder")
 
@@ -486,12 +492,47 @@ for xi, v in zip(x, vals):
     ax.text(xi - 0.12, v, f"{v:.2f}", ha="right", va="center", fontsize=6.5)
 ax.axhline(0.5, color="0.4", lw=0.7, ls=":")
 ax.set_xticks(x, exps)
-ax.set(ylim=(0.3, 0.8), ylabel="macro AUC (4 subtypes)", title="Stage 2 ablation: 101 test patients")
+ax.set(ylim=(0.3, 0.8), xlim=(-0.7, len(exps) - 0.4), ylabel="macro AUC (4 subtypes)", title="Stage 2 ablation: 101 test patients")
 ax.legend(frameon=False, loc="upper left", fontsize=7)
 ax.grid(True, axis="y")
 save(fig, "f8_ablation_ci")
 
 # ============================================================ key findings + write tables.md
+def a_(name):
+    return e0m(name) or {}
+
+
+e5t, e6t = abl["stage2"]["E5"]["averaged"], abl["stage2"]["E6"]["averaged"]
+cl = a_("E0-clean")
+kf = [
+    f"1. Benign vs malignant (Stage 1): our final model reaches a test AUC of {v2['auc']:.2f} ({v2['auc_ci95'][0]:.2f}–{v2['auc_ci95'][1]:.2f}) on {v2['n_breasts']} breasts, judged honestly on unseen patients.",
+    f"2. At a threshold set to catch 90% of cancers it finds {op(v2, 'oof_sens90')['test']['sensitivity']:.0%} of test cancers but clears only {op(v2, 'oof_sens90')['test']['specificity']:.0%} of benign breasts. Dense breasts score {op(v2, 'youden')['test_subgroups']['dense_breasts']['auc']:.2f} against {op(v2, 'youden')['test_subgroups']['non_dense_breasts']['auc']:.2f} for non-dense; cancers no radiologist could locate ('Invisible') are hardest at {op(v2, 'youden')['test_subgroups']['invisible_cancers_vs_all_benign']['auc']:.2f}.",
+    f"3. The improved Stage 1 recipe beat the first model by {cmp12['difference']:+.3f} AUC, but the difference is within noise (95% CI {cmp12['difference_ci95'][0]:+.3f} to {cmp12['difference_ci95'][1]:+.3f}).",
+    f"4. The baseline paper's code is public. It sets the 'tumour type' input to 'none' for every benign image, so the model is told which images are benign.",
+    f"5. Re-running their exact protocol we get {a_('E0-paperdata')['auc_micro']:.2f} micro AUC, close to their published {PAPER['micro']:.2f}; their 88.87% is a micro average, which an easy class inflates.",
+    f"6. That leaked input alone, with no mammogram at all, scores {a_('E0-meta')['auc_micro']:.2f} micro AUC and a perfect {a_('E0-meta')['auc_Benign']:.2f} for benign.",
+    f"7. Giving benign breasts their real lesion type drops the same model to {a_('E0-truemeta')['auc_micro']:.2f} micro AUC"
+    + (f"; with a patient-wise split as well (E0-clean) it is {cl['auc_micro']:.2f} micro / {cl['auc_macro']:.2f} macro." if cl else "."),
+    f"8. The paper also labelled both breasts of a patient with the tumour's subtype (1,458 images of breasts with no labelled cancer); with correct per-breast labels the leaky model scores {a_('E0')['auc_micro']:.2f}, not lower, so the metadata leak, not the labelling, drives the headline.",
+    f"9. Predicting the molecular subtype from the image is genuinely hard: on 101 test patients our best models reach a macro AUC of {e5t['auc_macro']:.2f} (E5, gated fusion) and {e6t['auc_macro']:.2f} (E6), and no added component is shown to help beyond noise"
+    + (f"; the leaky baseline scores {four['E0-patient']['auc_macro']:.2f} on the same 4-subtype task." if "E0-patient" in four else "."),
+    f"10. Chaining the two stages gives an honest 5-class result of {chain['auc_micro']:.2f} micro / {chain['auc_macro']:.2f} macro AUC — lower than the paper's headline, but free of the label leak, the image-wise split and the per-patient labelling.",
+]
+(OUT / "key_findings.md").write_text("# Key findings (for the synopsis)\n\n" + "\n".join(kf) + "\n\nEvery number above is taken by "
+                                     "`scripts/08b_synopsis.py` from the files listed under tables T2–T5.\n", encoding="utf-8")
+md.extend(["## Key findings", ""] + kf + [""])
+FIGS = [
+    ("f1_flowchart.png", "Inclusion and exclusion: from 5,202 CMMD images to the Stage 1, E0 and Stage 2 sets.", "data/index/pairs.csv (task 04), cross-check reports/04_data_flow.md"),
+    ("f2_class_distribution.png", "Class distribution per split: Stage 1 breasts (left), Stage 2 patients (right).", "t1_dataset.csv (from data/splits/stage1.csv, stage2.csv)"),
+    ("f3_architecture.png", "Block diagrams of Stage 1 and Stage 2 (E5; E6 is the 5-fold ensemble of E5).", "src/models.py, src/stage2.py"),
+    ("f4_training_curves.png", "Training and validation curves: Stage 1 v2 (5 CV folds of recipe R3) and Stage 2 E5 (3 seeds).", "reports/stage1_v2/cv_r3/fold*/training_log.csv, reports/stage2/val/E5/seed*/training_log.csv"),
+    ("f5_roc_e0_chained.png", "One-vs-rest test ROC: (a) E0 (its 260 image-wise test images) vs E0-clean (its 388 patient-wise test images); (b) the chained 5-class model (183 breasts).", "reports/stage2/test/test_E0.csv, reports/stage2/test_e0clean/test_E0-clean.csv, reports/stage2/test/chained_5class.csv"),
+    ("f6_stage1_roc.png", "Stage 1 test ROC (v2 and v1) with the two operating points of v2, both chosen on out-of-fold predictions.", "reports/stage1_v2/test_predictions.csv, reports/stage1/test_predictions.csv, reports/stage1_v2/metrics_test.json"),
+    ("f7_leak_ladder.png", "The leak ladder: test micro and macro AUC from the paper's protocol to a clean evaluation.", "t3_leak_ladder.csv"),
+    ("f8_ablation_ci.png", "Stage 2 ablation: test macro AUC with 95% CI (dots) and validation mean (squares).", "reports/stage2/test/metrics_test.json, reports/stage2/val/*/*/metrics_val.json"),
+]
+md.extend(["## Figures (300 dpi PNG, black and white)", "", "| file | caption | source |", "|---|---|---|"]
+          + [f"| `{f}` | {c} | `{s}` |" for f, c, s in FIGS] + [""])
 findings = Path(OUT / "key_findings.md")
 head = ["# Synopsis tables (task 08b)", "",
         "All numbers are copied by `scripts/08b_synopsis.py` from saved files (listed under each table); nothing is retyped.",

@@ -585,3 +585,28 @@
 - **GPU time, task 08: 212.6 min = 3.5 h** (E0 family 41.9, E0-paperdata 27.5, E1/E1-224/E2 37.4, E3 29.3, E4
   18.6, E5 18.4, E6 39.4). Test scoring on CPU (76.8 min). **Project total about 10.5 GPU hours.**
 - Next: Task 09 (Grad-CAM and SHAP).
+
+## 2026-10-24 — Task 08b: synopsis tables and figures (+ E0-clean)
+- Done: `scripts/08b_synopsis.py` builds everything in `reports/synopsis/` from saved files only (each table
+  lists its sources): `tables.md` with T1–T6, key findings, figure list; one CSV per table; F1–F8 as 300-dpi
+  black-and-white PNGs (Times-style serif). Every number is read from a file by the script, not retyped.
+- **One new run, E0-clean** (E0 with real lesion types AND our patient-wise split, 3 seeds; `src/e0.py`,
+  notebook `cmmd-08-e0-clean`). Nothing is chosen on validation in E0 (last epoch kept, as the paper), so the
+  notebook trains it and then scores its test set once (`--only E0-clean`; 2026-10-24 14:11 UTC, not forced) →
+  `reports/stage2/test_e0clean/`. First attempt failed at import (no `pip install monai`; 0.6 min, nothing trained).
+  - Test (388 images, patient-wise): micro AUC 0.704 (0.66–0.74), macro 0.602 (0.55–0.65); Benign 0.681,
+    LumA 0.612, LumB 0.499, HER2 0.723, TN 0.495; ACC 0.381, F1 (macro) 0.280.
+- **E0-patient and E0-clean re-scored on 4 subtypes, 101 Stage 2 test patients** (CPU, from saved test
+  probabilities only: benign column dropped, subtypes renormalised, CC and MLO averaged per breast):
+  E0-patient macro AUC 0.520 (0.44–0.61), E0-clean 0.546 (0.46–0.63); validation 0.563 ± 0.019 and
+  0.593 ± 0.009. Both below E2–E5 on the same patients (T4).
+- Leak ladder (T3, test micro / macro AUC): paper 0.889 / ≈0.794 → E0-paperdata 0.859 / 0.770 → E0 0.920 /
+  0.850 → E0-meta 0.902 / 0.850 → E0-truemeta 0.685 / 0.632 → E0-patient 0.904 / 0.810 → E0-clean 0.704 / 0.602.
+- Figures: F1 flowchart, F2 class distribution, F3 architecture, F4 training curves, F5 ROC (E0 vs E0-clean,
+  chained), F6 Stage 1 ROC with both operating points, F7 leak ladder, F8 ablation with CIs.
+  - **F4 is partial:** the Stage 2 logs never recorded validation loss (`src/stage2.py` did not log it), so the
+    E5 panel shows training loss and validation macro AUC only. Stage 1 v2 logs are complete. Nothing skipped
+    otherwise.
+- `reports/synopsis/key_findings.md`: the 10-line plain-English summary for the synopsis.
+- GPU time: 18.5 min (E0-clean 17.9 + failed start 0.6). **Project total about 10.8 GPU hours.**
+- Next: Task 09 (Grad-CAM and SHAP) — waiting for Anu.

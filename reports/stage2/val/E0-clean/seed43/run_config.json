@@ -1,0 +1,11 @@
+{
+  "name": "E0-clean",
+  "seed": 43,
+  "split": "patient",
+  "use_image": true,
+  "use_meta": true,
+  "meta": "true",
+  "workers": 4,
+  "pretrained": true,
+  "epochs": 10
+}
