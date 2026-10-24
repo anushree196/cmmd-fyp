@@ -1,0 +1,23 @@
+{
+  "stage": 1,
+  "data_root": null,
+  "out_dir": "/kaggle/working/fold3",
+  "backbone": "efficientnet_b3",
+  "no_pretrained": false,
+  "img_size": 512,
+  "epochs": 20,
+  "batch_size": 8,
+  "lr": 0.0001,
+  "backbone_lr": null,
+  "weight_decay": 0.0001,
+  "dropout": 0.3,
+  "label_smoothing": 0.0,
+  "aug": "light",
+  "fold": 3,
+  "n_folds": 5,
+  "warmup_epochs": 1.0,
+  "patience": 5,
+  "workers": 4,
+  "limit": 0,
+  "seed": 42
+}

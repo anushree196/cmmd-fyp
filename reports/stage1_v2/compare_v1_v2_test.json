@@ -1,0 +1,12 @@
+{
+  "n_test_breasts": 279,
+  "auc_v1": 0.7670236473938343,
+  "auc_v2": 0.7869258388015352,
+  "difference": 0.019902191407700887,
+  "difference_ci95": [
+    -0.02343496451736857,
+    0.060888006764035926
+  ],
+  "share_of_draws_v2_better": 0.8255,
+  "correlation_of_probabilities": 0.8070487586148588
+}

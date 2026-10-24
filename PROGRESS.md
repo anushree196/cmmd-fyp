@@ -390,3 +390,79 @@
   test would be a second look at the test set and must be reported as such.
 - Next: Anu to decide whether to improve Stage 1 first (it overfits; stronger augmentation or regularisation,
   judged on val) or to move on to task 07 (radiomics, CPU) and task 08.
+
+## 2026-10-24 — Task 06 v2: Stage 1 improved once (fixed budget), 5-fold CV ensemble, SECOND test evaluation
+- Why: v1 overfitted early (train loss 0.07, val loss rising after epoch 3). Anu asked to improve Stage 1 once
+  with a fixed budget, choosing everything on validation only, then score test once more with the frozen
+  recipe. **This is the second time the Stage 1 test split has been scored**, for that reason; it is the last.
+- Code added: `src/folds.py` (5 folds over train+val patients, same strata as task 04, seed 42),
+  `src/evaluate_ensemble.py` (OOF thresholds, ensemble test scoring, refuses a second run), in `src/train.py`
+  `--fold`, `--label-smoothing`, `--dropout`, `--backbone-lr`, `--aug strong`, plus guards against 16-bit
+  overflow; `scripts/06_compare_stage1.py` (paired v1 vs v2 comparison from the saved test predictions).
+- Bugs found on the way (all reproduced and fixed on the laptop CPU before rerunning):
+  - First two Kaggle runs crashed with NaN (16-bit overflow on the GPU poisons the batch-norm statistics).
+    Fixed: the layers after the encoder run in 32-bit; a step with a non-finite loss is skipped and the
+    batch-norm statistics restored; a non-finite prediction batch is redone in 32-bit. No step was skipped in
+    any later run.
+  - The next two runs finished with near-chance val AUC (0.606, 0.548). Traced by 1-epoch CPU tests (v1
+    control val loss 0.66; strong aug 1.50; crop-and-resize alone 2.45; rotation, contrast, brightness alone
+    0.66–0.67): MONAI "random resized crop" only zooms IN (train images ~6% larger than val, and stretched),
+    made worse by `Resized`'s default "area" mode (blocky texture). **Deviation from Anu's spec:** replaced by a
+    symmetric zoom of the same strength (`RandZoomd`, side ×0.894–1.118 = area 80–125%, one factor for both
+    axes, bilinear). Rotation ±15°, brightness and contrast as specified.
+  - Found while checking the zoom: `RandAffined(scale_range=x)` with one number scales only the first axis
+    (height). v1's light augmentation therefore scaled height only (±10%); v1 itself is unchanged.
+- Recipe search, fixed train/val split (val = same 278 breasts as v1), at most 3 runs; the 4 failed attempts
+  above are not counted as recipes:
+  | run | recipe | best epoch | val AUC (95% CI) |
+  |---|---|---|---|
+  | v1 | light aug, dropout 0.3, wd 1e-4, lr 1e-4 all layers | 7 / 12 | 0.833 (0.786–0.876) |
+  | R1 | strong aug, label smoothing 0.1, dropout 0.5, wd 1e-2, backbone lr 3e-5, head 3e-4, 512 px | 5 / 11 | 0.770 (0.710–0.829) |
+  | R2 | as R1 at 768 px (batch 6) | 10 / 16 | 0.788 (0.731–0.846) |
+  | R3 | as R1 but backbone lr 1e-4 | 14 / 20 | 0.824 (0.771–0.873) |
+  768 px fitted on a T4 but was not clearly better than 512 px at 2.3× the GPU time.
+- Anu's rule (2026-10-24): run BOTH v1 and R3 through the same 5 folds; pick the higher mean held-out AUC;
+  within 0.01 prefer R3 (it overfits less). Fold assignment confirmed identical in both (`reports/stage1_v2/cv_folds.csv`):
+  299–300 patients per fold, malignant share 69.8–71.4%, Normal-among-benign 61.7–63.5%, Invisible-among-malignant 10.4–11.7%.
+  | recipe | fold held-out AUCs (folds 0–4) | **mean ± std** | pooled OOF AUC (1,577 breasts) |
+  |---|---|---|---|
+  | v1 | 0.846, 0.796, 0.800, 0.790, 0.842 | **0.815 ± 0.027** | 0.780 |
+  | R3 | 0.837, 0.827, 0.802, 0.799, 0.825 | **0.818 ± 0.017** | 0.809 (0.786–0.830) |
+  **Winner: R3** (+0.003, within 0.01, so R3 by the tie rule too). R3 is also steadier across folds.
+- Final model = ensemble of R3's 5 fold models (mean probability). Thresholds chosen on R3's OOF predictions:
+  - Youden 0.611 → OOF sensitivity 67.1%, specificity 82.4%.
+  - OOF sensitivity ≥ 90%: 0.169 → OOF sensitivity 90.1%, specificity 43.7%.
+- **Test, second evaluation** (`cmmd-06-stage1-ensemble-test`, CPU, 2026-10-24 07:40 UTC, not forced; 279 breasts):
+  | | v1 (single model) | **v2 (R3 5-fold ensemble)** |
+  |---|---|---|
+  | test AUC (95% CI) | 0.767 (0.707–0.820) | **0.787 (0.728–0.843)** |
+  | Youden threshold: sensitivity / specificity | 54.3% / 84.1% | 60.9% (54.1–67.7) / 76.8% (67.6–85.5) |
+  | 90%-sensitivity threshold: sensitivity / specificity | 84.3% / 43.9% | 94.4% (91.0–97.5) / 25.6% (15.5–35.9) |
+  | "Invisible" cancers vs all benign, AUC | 0.606 (0.468–0.739) | 0.679 (0.558–0.793) |
+  | visible cancers vs all benign, AUC | 0.785 (0.729–0.838) | 0.799 (0.741–0.852) |
+  | dense breasts, AUC | 0.756 (0.689–0.818) | 0.790 (0.726–0.850) |
+  | non-dense breasts, AUC | 0.873 (0.734–0.967) | 0.841 (0.700–0.951) |
+  - v2 confusion, Youden: found 120 / missed 77 cancers, 63 benign correct / 19 flagged.
+    At 90%-sensitivity: found 186 / missed 11, 21 benign correct / 61 flagged.
+  - **Paired comparison on the same test breasts** (`reports/stage1_v2/compare_v1_v2_test.json`): AUC
+    difference +0.020, 95% CI −0.023 to +0.061; v2 better in 83% of bootstrap draws. **Not statistically
+    distinguishable** on 279 breasts. Probabilities of v1 and v2 correlate 0.81.
+  - Each single fold model on test (descriptive only, not used for any choice): 0.765, 0.746, 0.751, 0.731,
+    0.761. The ensemble (0.787) beats every one of its members.
+- Uncertainty for semester 2: `reports/stage1_v2/test_predictions.csv` holds `prob_fold0`–`prob_fold4`, the
+  mean `prob` and the spread `prob_std` (mean spread 0.165) for every test breast; OOF predictions in
+  `oof_predictions.csv`. Fold weights stay as the Kaggle outputs of `cmmd-07-stage1-r3cv-a/b` (not in git).
+- Files: `reports/stage1_v2/` (test and OOF predictions, metrics_test.json, comparison, both recipes' fold
+  metrics, logs and val predictions, the three recipe-search runs, the fold assignment).
+- **GPU time, Task 06 v2: 385 min = 6.4 h** (T4): crashed attempts 5.0 + 10.1; broken-augmentation runs 22.5 +
+  46.0; R1 22.0; R2 48.7; R3 30.0; v1 CV 39.3 + 37.8; R3 CV 72.6 + 51.2. Ensemble test scoring ran on CPU
+  (64.8 min, no GPU). Wasted on bugs: 83.6 min.
+  **Project total so far: about 7.0 GPU hours** (task 05 check < 1 min, task 06 v1 33.7 min, v2 385 min).
+- Surprises:
+  - The strong regularisation did not beat v1 on single runs; it only tied within noise once the backbone
+    learning rate was restored (R3). Its real gain is stability: lower fold-to-fold spread and a much better
+    pooled OOF AUC (0.809 vs 0.780), i.e. its fold models agree better on what a probability means.
+  - The 90%-sensitivity threshold from OOF over-shot on test (94.4% sensitivity, 25.6% specificity).
+  - The "Invisible" subgroup improved (0.606 → 0.679) but still has a wide CI, with only 20 such cancers.
+- Stage 1 is now frozen. The test split is not to be scored again for Stage 1.
+- Next: Task 07 (radiomics on the real lesion masks, CPU notebook, pyradiomics from GitHub commit 8ed579383).

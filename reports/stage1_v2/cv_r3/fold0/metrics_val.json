@@ -1,0 +1,44 @@
+{
+  "split": "cv fold 0 of 5",
+  "best_epoch": 6,
+  "epochs_run": 12,
+  "chosen_threshold": 0.576683759689331,
+  "threshold_rule": "Youden J (max sensitivity + specificity - 1) on val",
+  "mean_view_weight_cc": 0.4906726911003831,
+  "mean_view_weight_mlo": 0.5093273101728174,
+  "threshold_val_sens90": 0.32736313343048096,
+  "class_weights": [
+    1.690348505973816,
+    0.710022509098053
+  ],
+  "train_minutes": 19.819889259338378,
+  "device": "cuda",
+  "gpu": "Tesla T4",
+  "n_breasts": 316,
+  "n_patients": 300,
+  "n_malignant": 222,
+  "n_benign": 94,
+  "threshold": 0.576683759689331,
+  "auc": 0.8365439907993101,
+  "auc_ci95": [
+    0.7885944803852915,
+    0.8814691399439484
+  ],
+  "auc_boot_draws": 2000,
+  "sensitivity": 0.6666666666666666,
+  "sensitivity_ci95": [
+    0.6037673510098911,
+    0.7272823984526112
+  ],
+  "specificity": 0.8723404255319149,
+  "specificity_ci95": [
+    0.8064516129032258,
+    0.9326923076923077
+  ],
+  "confusion": {
+    "true_benign": 82,
+    "false_malignant": 12,
+    "missed_cancer": 74,
+    "found_cancer": 148
+  }
+}
