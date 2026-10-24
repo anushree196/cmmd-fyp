@@ -610,3 +610,11 @@
 - `reports/synopsis/key_findings.md`: the 10-line plain-English summary for the synopsis.
 - GPU time: 18.5 min (E0-clean 17.9 + failed start 0.6). **Project total about 10.8 GPU hours.**
 - Next: Task 09 (Grad-CAM and SHAP) — waiting for Anu.
+
+## 2026-10-24 — Task 08b edits: F7 reorder, synopsis-width tables
+- F7: bars now Paper, E0-paperdata, E0, E0-meta, E0-patient, E0-truemeta, E0-clean, with a dashed vertical line
+  between E0-patient and E0-truemeta labelled "leak kept" (left) and "leak removed" (right). T3 keeps its order.
+- New `reports/synopsis/tables_short.md` (+ `t2_stage1_short.csv`, `t3_leak_ladder_short.csv`): T2 with only the
+  v2 column plus a row "v1 test AUC 0.767"; T3 with run, micro AUC, macro AUC and Benign AUC only.
+- No numbers changed: `tables.md`, all existing CSVs and `key_findings.md` are byte-identical (git diff empty);
+  only `f7_leak_ladder.png`, the script and the three new files differ.

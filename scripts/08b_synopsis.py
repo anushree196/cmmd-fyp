@@ -132,8 +132,9 @@ for g, label in [("dense_breasts", "Subgroup AUC: dense breasts"), ("non_dense_b
     a, b = op(v1, "youden")["test_subgroups"][g], op(v2, "youden")["test_subgroups"][g]
     r.append((f"{label} (n={a['n_breasts']})", ci(a["auc"], a["auc_ci95"]), ci(b["auc"], b["auc_ci95"])))
 r.append(("Paired difference v2 − v1 in test AUC (95% CI)", "", f"{cmp12['difference']:+.3f} ({cmp12['difference_ci95'][0]:+.3f} to {cmp12['difference_ci95'][1]:+.3f})"))
+t2 = pd.DataFrame(r, columns=["measure", "v1", "v2 (final)"])
 table("t2_stage1", "Stage 1 (benign vs malignant) test results, 279 breasts / 265 patients",
-      pd.DataFrame(r, columns=["measure", "v1", "v2 (final)"]),
+      t2,
       ["reports/stage1/metrics_test.json", "reports/stage1_v2/metrics_test.json", "reports/stage1_v2/compare_v1_v2_test.json"],
       "The test split was scored twice in total (v1, then v2 with the frozen recipe); the reason is logged in PROGRESS.md (task 06 v2).")
 
@@ -459,7 +460,9 @@ ax.legend(frameon=False, loc="lower right", fontsize=6.5)
 save(fig, "f6_stage1_roc")
 
 # ---- F7 leak ladder bars
-lad = [(l, k) for l, _, k in ladder if k is None or e0m(k) is not None]
+F7_ORDER = [None, "E0-paperdata", "E0", "E0-meta", "E0-patient", "E0-truemeta", "E0-clean"]
+label_of = {k: l for l, _, k in ladder}
+lad = [(label_of[k], k) for k in F7_ORDER if k is None or e0m(k) is not None]
 names = [l for l, _ in lad]
 micro = [PAPER["micro"] if k is None else e0m(k)["auc_micro"] for _, k in lad]
 macro = [np.mean([PAPER[c] for c in FIVE]) if k is None else e0m(k)["auc_macro"] for _, k in lad]
@@ -471,6 +474,11 @@ for i, (vals, lab_) in enumerate([(micro, "micro AUC"), (macro, "macro AUC")]):
         ax.text(b_.get_x() + b_.get_width() / 2, v + 0.01, f"{v:.2f}", ha="center", va="bottom", fontsize=6.5)
 ax.axhline(0.5, color="0.4", lw=0.7, ls=":")
 ax.text(-0.62, 0.505, "chance", fontsize=6.5, ha="left", va="bottom", color="0.3")
+# dashed divider between the runs that keep the metadata leak and those that remove it
+split_at = [k for _, k in lad].index("E0-truemeta") - 0.5
+ax.axvline(split_at, color="0.2", lw=0.9, ls="--")
+ax.text(split_at - 0.08, 0.975, "leak kept", ha="right", va="top", fontsize=8, fontstyle="italic")
+ax.text(split_at + 0.08, 0.975, "leak removed", ha="left", va="top", fontsize=8, fontstyle="italic")
 ax.set_xticks(x, [n.replace(" (published)", "\n(published)") for n in names], fontsize=7.5)
 ax.set(ylim=(0.4, 1.0), xlim=(-0.65, len(names) - 0.35), ylabel="test AUC (5 classes)",
        title="The leak ladder: from the paper's protocol to a clean evaluation")
@@ -521,6 +529,21 @@ kf = [
 (OUT / "key_findings.md").write_text("# Key findings (for the synopsis)\n\n" + "\n".join(kf) + "\n\nEvery number above is taken by "
                                      "`scripts/08b_synopsis.py` from the files listed under tables T2–T5.\n", encoding="utf-8")
 md.extend(["## Key findings", ""] + kf + [""])
+v1_row = pd.DataFrame([{"measure": "v1 test AUC", "v2 (final)": f"{v1['auc']:.3f}"}])
+t2_short = pd.concat([t2[["measure", "v2 (final)"]].iloc[:1], v1_row, t2[["measure", "v2 (final)"]].iloc[1:]], ignore_index=True)
+t2_short = t2_short[t2_short["v2 (final)"] != ""].rename(columns={"v2 (final)": "Stage 1 v2 (final)"})
+t3_short = t3[["run", "micro AUC", "macro AUC", "Benign"]].rename(columns={"Benign": "Benign AUC"})
+t2_short.to_csv(OUT / "t2_stage1_short.csv", index=False)
+t3_short.to_csv(OUT / "t3_leak_ladder_short.csv", index=False)
+(OUT / "tables_short.md").write_text("\n".join([
+    "# Synopsis-width tables (shortened T2 and T3; same numbers as tables.md)", "",
+    "## T2 (short): Stage 1 test results, 279 breasts / 265 patients", "", t2_short.to_markdown(index=False), "",
+    "Sources: `reports/stage1_v2/metrics_test.json`; `reports/stage1/metrics_test.json` (v1 AUC); "
+    "`reports/stage1_v2/compare_v1_v2_test.json`", "",
+    "## T3 (short): the leak ladder (5 classes, test, average of 3 seeds)", "", t3_short.to_markdown(index=False), "",
+    "Sources: `docs/baseline_paper_notes.md` (paper); `reports/stage2/test/metrics_test.json`; "
+    "`reports/stage2/test_e0clean/metrics_test.json`", ""]), encoding="utf-8")
+
 FIGS = [
     ("f1_flowchart.png", "Inclusion and exclusion: from 5,202 CMMD images to the Stage 1, E0 and Stage 2 sets.", "data/index/pairs.csv (task 04), cross-check reports/04_data_flow.md"),
     ("f2_class_distribution.png", "Class distribution per split: Stage 1 breasts (left), Stage 2 patients (right).", "t1_dataset.csv (from data/splits/stage1.csv, stage2.csv)"),
